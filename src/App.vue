@@ -1,85 +1,45 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <MenuBar class="navBarStyle" style="border: 0px">
+    <template #start>
+      <img alt="logo" src="@/assets/fuzzy-car-choice-logo.png" height="200" class="m-0 p-0" />
+    </template>
+  </MenuBar>
+  <TabView class="mt-4">
+    <TabPanel color="accent">
+      <template #header>
+        <i class="pi pi-book mr-2"></i>
+        <span>Documentație</span>
+      </template>
+      <p>sdfnjsd</p>
+    </TabPanel>
+    <TabPanel>
+      <template #header>
+        <i class="pi pi-calculator mr-2"></i>
+        <span>Model</span>
+      </template>
+    </TabPanel>
+  </TabView>
 </template>
 
+<script setup></script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
+.navBarStyle {
   background-color: transparent;
 }
+</style>
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+<style>
+body {
+  background: rgb(0, 97, 232);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 97, 232, 1) 0%,
+    rgba(191, 0, 165, 1) 91%,
+    rgba(255, 45, 123, 0.7) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
 }
 </style>
