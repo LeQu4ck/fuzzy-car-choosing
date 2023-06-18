@@ -1,3 +1,5 @@
+/* eslint-disable vue/no-reserved-component-names */
+/* eslint-disable vue/multi-word-component-names */
 import { createApp } from 'vue'
 import App from './App.vue'
 import PrimeVue from 'primevue/config';
@@ -12,12 +14,14 @@ import 'primeflex/primeflex.css'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import MenuBar from 'primevue/menubar';
+import Button from 'primevue/button';
 
 const app = createApp(App)
 
 app.component('TabView', TabView)
 app.component('TabPanel', TabPanel)
 app.component('MenuBar', MenuBar)
+app.component('Button', Button)
 
 
 app.use(PrimeVue, {ripple: true});
