@@ -20,80 +20,108 @@
         <span>Model</span>
       </template>
 
-      <div>
-        <!-- Criteria Input -->
-        <div class="criteria-input">
-          <div>
-            <label>Nume criteriu:</label>
-            <InputText v-model="newCriterion.name" />
-          </div>
-          <div>
-            <label>Tip criteriu:</label>
-            <DropDown v-model="newCriterion.type" :options="criterionTypes" />
-          </div>
-          <div>
-            <label>Optimizare:</label>
-            <DropDown v-model="newCriterion.optimizationType" :options="optimizationTypes" />
-          </div>
-          <div>
-            <label>Pondere: </label>
-            <InputText v-model="newCriterion.weight"></InputText>
-          </div>
-          <Button @click="addCriterion">Adauga criteriu</Button>
-        </div>
-
+      <div class="flex flex-row justify-content-center">
         <div>
-          <h3>Criteria List</h3>
-          <ul>
-            <li v-for="(criterion, index) in criteria" :key="index">
-              {{ index + 1 }}. Criteriu: {{ criterion.name }}, Tip: {{ criterion.type }},
-              Optimizare: {{ criterion.optimizationType }}, Pondere: {{ criterion.weight }}
-            </li>
-          </ul>
-        </div>
-
-        <!-- Data Table -->
-        <DataTable
-          :value="variants"
-          :columns="columns"
-          editMode="cell"
-          @cell-edit-complete="onCellEditComplete"
-          tableClass="editable-cells-table"
-          :editable="true"
-        >
-          <template v-for="criterion in criteria" :key="criterion.name">
-            <Column :field="criterion.name" :header="criterion.name" :editable="true"></Column>
-          </template>
-          <Column field="variant" header="Variant" :editable="true"></Column>
-        </DataTable>
-
-        <Dialog v-model:visible="dialogVisible" @hide="resetForm">
-          <div class="p-fluid">
-            <div><label>Varianta</label> <InputText v-model="formData.variant" /></div>
-            <div v-for="(criterion, index) in criteria" :key="index">
-              <label>{{ criterion.name }}</label>
-              <InputText v-model="formData[criterion.name]" />
+          <div class="flex flex-row">
+            <div class="flex flex-column mr-2">
+              <label>Nume criteriu:</label>
+              <InputText v-model="newCriterion.name" />
+            </div>
+            <div class="flex flex-column mr-2">
+              <label>Tip criteriu:</label>
+              <DropDown v-model="newCriterion.type" :options="criterionTypes" />
+            </div>
+            <div class="flex flex-column mr-2">
+              <label>Optimizare:</label>
+              <DropDown v-model="newCriterion.optimizationType" :options="optimizationTypes" />
             </div>
           </div>
-
-          <div class="p-dialog-footer">
-            <Button label="Cancel" @click="hideDialog" />
-            <Button label="Add" @click="addRow" />
+          <div class="flex flex-column">
+            <div class="flex flex-column mr-2">
+              <label>Pondere: </label>
+              <InputText v-model="newCriterion.weight"></InputText>
+            </div>
+            <div class="flex flex-column mr-2">
+              <label>Nivel aspirație: </label>
+              <InputText s v-model="newCriterion.aspirationLevel"></InputText>
+            </div>
+            <div class="flex flex-column mr-2">
+              <label>Abatere acceptată: </label>
+              <InputText v-model="newCriterion.acceptedDeviation"></InputText>
+            </div>
           </div>
-        </Dialog>
-
-        <!-- Add Row Button -->
-        <Button @click="openDialog">Adauga rand</Button>
-
-        <!-- Calculate Optimal Decision Button -->
-        <Button @click="calculateOptimalDecision">Calculeaza decizia optimă</Button>
-
-        <!-- Display Optimal Decision -->
-        <div v-if="optimalDecision">
-          <h3>Decizia optima:</h3>
-          <p>Varianta: {{ optimalDecision.variant }}</p>
-          <p>Scorul: {{ optimalDecision.score }}</p>
+          <Button
+            class="mt-2 border-circle"
+            v-tooltip="'Adaugă criteriu'"
+            @click="addCriterion"
+            icon="pi pi-plus"
+          ></Button>
         </div>
+      </div>
+
+      <div class="mb-4">
+        <h3>Listă criterii:</h3>
+        <ul>
+          <li v-for="(criterion, index) in criteria" :key="index">
+            {{ index + 1 }}. Criteriu: {{ criterion.name }}, Tip: {{ criterion.type }}, Optimizare:
+            {{ criterion.optimizationType }}, Pondere: {{ criterion.weight }}, Nivel aspirație:
+            {{ criterion.aspirationLevel }}, Abatere acceptată: {{ criterion.acceptedDeviation }}
+          </li>
+        </ul>
+        <Button v-if="showDeleteCriteriaBtn" @click="deleteCriteria">Șterge criterii</Button>
+      </div>
+
+      <!-- Data Table -->
+      <DataTable
+        :value="variants"
+        :columns="columns"
+        editMode="cell"
+        tableClass="editable-cells-table"
+        @cell-edit-complete="onCellEditComplete"
+        :editable="true"
+      >
+        <Column field="variant" header="Variant" :editable="true">
+          <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
+        ></Column>
+        <template v-for="criterion in criteria" :key="criterion.name">
+          <Column :field="criterion.name" :header="criterion.name" :editable="true">
+            <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
+          ></Column>
+        </template>
+      </DataTable>
+
+      <Dialog v-model:visible="dialogVisible" @hide="resetForm">
+        <div class="p-fluid">
+          <div><label>Varianta</label> <InputText v-model="formData.variant" /></div>
+          <div v-for="(criterion, index) in criteria" :key="index">
+            <label>{{ criterion.name }}</label>
+            <InputText v-model="formData[criterion.name]" />
+          </div>
+        </div>
+
+        <div class="p-dialog-footer">
+          <Button id="denyDialog" label="Închide" @click="hideDialog" />
+          <Button id="accDialog" label="Adaugă" @click="addRow" />
+        </div>
+      </Dialog>
+
+      <!-- Add Row Button -->
+      <div class="flex justify-content-between">
+        <Button @click="openDialog">Adauga rând</Button>
+        <Button @click="emptyTable">Golește tabel</Button>
+      </div>
+
+      <!-- Calculate Optimal Decision Button -->
+
+      <!-- Display Optimal Decision -->
+      <div v-if="optimalDecision">
+        <h3>Decizia optima:</h3>
+        <p>Varianta: {{ optimalDecision.variant }}</p>
+        <p>Scorul: {{ optimalDecision.score }}</p>
+      </div>
+
+      <div class="mt-4">
+        <Button @click="calculateOptimalDecision">Calculeaza decizia optimă</Button>
       </div>
     </TabPanel>
   </TabView>
@@ -109,8 +137,23 @@ const newCriterion = ref({
   name: '',
   type: '',
   optimizationType: '',
-  weight: ''
+  weight: '',
+  aspirationLevel: '',
+  acceptedDeviation: ''
 })
+
+const columns = criteria.value.map((criterion) => {
+  return { field: criterion.name, header: criterion.name, sortable: true }
+})
+
+const showDeleteCriteriaBtn = ref(false)
+
+const deleteCriteria = () => {
+  criteria.value = []
+  showDeleteCriteriaBtn.value = false
+}
+
+columns.push({ field: 'variant', header: 'Variant' })
 
 const dialogVisible = ref(false)
 const formData = ref({})
@@ -130,6 +173,10 @@ const addRow = () => {
   hideDialog()
 }
 
+const emptyTable = () => {
+  variants.value = []
+}
+
 const hideDialog = () => {
   dialogVisible.value = false
 }
@@ -145,22 +192,14 @@ const addCriterion = () => {
   newCriterion.value.type = ''
   newCriterion.value.optimizationType = ''
   newCriterion.value.weight = ''
+  newCriterion.value.aspirationLevel = ''
+  newCriterion.value.acceptedDeviation = ''
+  showDeleteCriteriaBtn.value = true
 }
-
-// const addRow = () => {
-//   const row = {
-//     variant: ''
-//   }
-//   criteria.value.forEach((criterion) => {
-//     row[criterion.name] = null
-//   })
-//   variants.value.push(row)
-// }
 
 const onCellEditComplete = (event) => {
   let { data, newValue, field } = event
   data[field] = newValue
-  event.preventDefault()
 }
 
 const calculateOptimalDecision = () => {
@@ -172,12 +211,6 @@ const calculateOptimalDecision = () => {
     score: 100
   }
 }
-
-const columns = criteria.value.map((criterion) => {
-  return { field: criterion.name, header: criterion.name, sortable: true }
-})
-
-columns.push({ field: 'variant', header: 'Variant' })
 </script>
 
 <style scoped>
@@ -206,22 +239,6 @@ columns.push({ field: 'variant', header: 'Variant' })
 }
 :deep(.p-dropdown-item .p-highlight) {
   background-color: black;
-}
-
-.criteria-input {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 50px;
-}
-
-.criteria-input > div {
-  display: flex;
-  flex-direction: column;
-}
-
-.criteria-input > div:not(:last-child) {
-  margin-right: 10px;
 }
 </style>
 
