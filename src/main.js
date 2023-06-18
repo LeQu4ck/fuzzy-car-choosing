@@ -22,9 +22,11 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Row from 'primevue/row';
 import Dialog from 'primevue/dialog';
+import Card from 'primevue/card';
 
 //directives
 import FocusTrap from 'primevue/focustrap';
+import Tooltip from 'primevue/tooltip';
 
 const app = createApp(App)
 
@@ -40,10 +42,11 @@ app.component('DataTable', DataTable)
 app.component('Column', Column)
 app.component('Row', Row)
 app.component('Dialog', Dialog)
-
+app.component('Card', Card)
 
 //directives
 app.directive('focustrap', FocusTrap);
+app.directive('tooltip', Tooltip)
 
 app.use(PrimeVue, {ripple: true});
 
