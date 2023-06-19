@@ -62,7 +62,8 @@
             <InputText v-model="newCriterion.weight"></InputText>
           </div>
           <Button
-            class="mt-2 border-circle"
+            type="button"
+            class="mt-4 border-round-md"
             v-tooltip="'Adaugă criteriu'"
             @click="addCriterion"
             icon="pi pi-plus"
@@ -70,41 +71,86 @@
         </div>
       </div>
 
-      <div class="mb-4">
+      <div v-if="criteria.length > 0" class="mb-4">
         <h3>Listă criterii:</h3>
         <ul>
-          <li v-for="(criterion, index) in criteria" :key="index">
-            {{ index + 1 }}. Criteriu: {{ criterion.name }}, Tip: {{ criterion.type }}, Optimizare:
-            {{ criterion.optimizationType }}, Pondere: {{ criterion.weight }}, Nivel aspirație:
-            {{ criterion.aspirationLevel }}, Abatere acceptată: {{ criterion.acceptedDeviation }}
+          <li v-for="(criterion, index) in criteria" :key="index" class="flex flex-row p-1 m-1">
+            {{ index + 1 }}. {{ '&nbsp;' }}
+
+            <div class="flex flex-column mr-2">
+              <label for="numeCriteriu">Criteriu: </label>
+              <InputText id="numeCriteriu" v-model="criterion.name"></InputText>
+            </div>
+
+            <div class="flex flex-column mr-2">
+              <label for="tipCriteriu">Tip criteriu: </label>
+              <InputText id="tipCriteriu" v-model="criterion.type"></InputText>
+            </div>
+
+            <div class="flex flex-column mr-2">
+              <label for="optimizare">Optimizare: </label>
+              <InputText id="optimizare" v-model="criterion.optimizationType"></InputText>
+            </div>
+
+            <div class="flex flex-column mr-2">
+              <label for="nivelAspiratie">Nivel aspirație: </label>
+              <InputText id="nivelAspiratie" v-model="criterion.aspirationLevel"></InputText>
+            </div>
+
+            <div class="flex flex-column mr-2">
+              <label for="abatere">Abatere admisă: </label>
+              <InputText id="abatere" v-model="criterion.acceptedDeviation"></InputText>
+            </div>
+
+            <div class="flex flex-column mr-2">
+              <label for="pondere">Pondere: </label>
+              <InputText id="pondere" v-model="criterion.weight"></InputText>
+            </div>
           </li>
         </ul>
-        <Button v-if="showDeleteCriteriaBtn" @click="deleteCriteria">Șterge criterii</Button>
+        <Button
+          type="button"
+          class="border-round-md"
+          v-if="showDeleteCriteriaBtn"
+          @click="deleteCriteria"
+          >Șterge criterii</Button
+        >
       </div>
 
       <!-- Data Table -->
-      <DataTable
-        :value="variants"
-        :columns="columns"
-        editMode="cell"
-        tableClass="editable-cells-table"
-        @cell-edit-complete="onCellEditComplete"
-        :editable="true"
-      >
-        <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
-          <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
-        ></Column>
-        <template v-for="criterion in criteria" :key="criterion.name">
-          <Column
-            :field="criterion.name"
-            :header="criterion.name"
+      <div v-if="criteria.length != 0" class="flex justify-content-center">
+        <div style="width: 75%">
+          <DataTable
+            :value="variants"
+            :columns="columns"
+            editMode="cell"
+            tableClass="editable-cells-table"
+            @cell-edit-complete="onCellEditComplete"
             :editable="true"
-            bodyStyle="text-align:center"
           >
-            <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
-          ></Column>
-        </template>
-      </DataTable>
+            <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
+              <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
+            ></Column>
+            <template v-for="criterion in criteria" :key="criterion.name">
+              <Column
+                :field="criterion.name"
+                :header="criterion.name"
+                :editable="true"
+                bodyStyle="text-align:center"
+              >
+                <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
+              ></Column>
+            </template>
+          </DataTable>
+
+          <div class="flex justify-content-between mt-2">
+            <Button type="button" class="border-round-md" @click="openDialog"
+              >Adaugă variantă</Button
+            >
+            <Button type="button" class="border-round-md" @click="emptyTable">Golește tabel</Button>
+          </div>
+        </div>
+      </div>
 
       <Dialog v-model:visible="dialogVisible" @hide="resetForm">
         <div class="p-fluid">
@@ -126,45 +172,54 @@
         </div>
 
         <div class="p-dialog-footer">
-          <Button id="denyDialog" label="Închide" @click="hideDialog" />
-          <Button id="accDialog" label="Adaugă" @click="addRow" />
+          <Button
+            type="button"
+            class="border-round-md"
+            id="denyDialog"
+            label="Închide"
+            @click="hideDialog"
+          />
+          <Button
+            type="button"
+            class="border-round-md"
+            id="accDialog"
+            label="Adaugă"
+            @click="addRow"
+          />
         </div>
       </Dialog>
 
-      <!-- Add Row Button -->
-      <div class="flex justify-content-between mt-2">
-        <Button @click="openDialog">Adaugă variantă</Button>
-        <Button @click="emptyTable">Golește tabel</Button>
-      </div>
-
-      <div class="mt-4">
-        <Button @click="calculateOptimalDecision()">Calculeaza decizia optimă</Button>
+      <div v-if="variants.length > 0" class="mt-4">
+        <Button type="button" class="border-round-md" @click="calculateOptimalDecision()"
+          >Calculeaza decizia optimă</Button
+        >
       </div>
 
       <!-- Determining fuzzy triangular real numbers -->
-
-      <Card class="mt-4" style="width: 100%">
-        <template #title>
-          <h3>Numerele reale asociate numerelor fuzzy triunghiulare:</h3>
-        </template>
-        <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
-        <template #content>
-          <div class="flex flex-column justify-content-center" v-if="associatedRealNumber">
-            <div class="flex flex-column">
-              <p
-                v-for="(item, index) in associatedRealNumber"
-                :key="index"
-                class="flex justify-content-center"
-              >
-                {{ index + 1 }}. {{ item }}
-              </p>
+      <div v-if="associatedRealNumber.length > 0" class="flex justify-content-center">
+        <Card class="mt-4" style="width: 60%">
+          <template #title>
+            <h3>Numerele reale asociate numerelor fuzzy triunghiulare:</h3>
+          </template>
+          <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
+          <template #content>
+            <div class="flex flex-column justify-content-center" v-if="associatedRealNumber">
+              <div class="flex flex-column">
+                <p
+                  v-for="(item, index) in associatedRealNumber"
+                  :key="index"
+                  class="flex justify-content-center"
+                >
+                  {{ index + 1 }}. {{ item }}
+                </p>
+              </div>
             </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+        </Card>
+      </div>
 
       <!-- Determining fuzzy sets -->
-      <DataTable class="mt-4" v-if="fuzzyMatrix" :value="fuzzyMatrix">
+      <DataTable  class="mt-4" v-if="fuzzyMatrix.length > 0" :value="fuzzyMatrix">
         <template #header>
           <h4>Mulțimile fuzzy</h4>
         </template>
@@ -180,7 +235,7 @@
 
       <!-- Finall output - decision - hierarchy -->
 
-      <div class="flex flex-row justify-content-between">
+      <div v-if="optimalDecision !== {} && hierarchy.length > 0" class="flex flex-row justify-content-between">
         <Card class="mt-4" style="width: 45%">
           <template #title> <h3>Decizia optimă:</h3> </template>
           <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
@@ -218,43 +273,42 @@
 
 <script setup>
 import { ref } from 'vue'
-import { onMounted } from 'vue'
 
 //Alegerea unui automobil
 
-const criteria = ref([
-  {
-    name: 'pret',
-    type: 'Regular',
-    optimizationType: 'Min',
-    weight: 0.6,
-    aspirationLevel: 9.5,
-    acceptedDeviation: 5
-  },
-  {
-    name: 'Cheltuieli',
-    type: 'Fuzzy',
-    optimizationType: 'Min',
-    weight: 0.2,
-    aspirationLevel: 400,
-    acceptedDeviation: 100
-  },
-  {
-    name: 'GradConfort',
-    type: 'Regular',
-    optimizationType: 'Max',
-    weight: 0.2,
-    aspirationLevel: 20,
-    acceptedDeviation: 5
-  }
-])
+// const criteria = ref([
+//   {
+//     name: 'pret',
+//     type: 'Regular',
+//     optimizationType: 'Min',
+//     weight: 0.6,
+//     aspirationLevel: 9.5,
+//     acceptedDeviation: 5
+//   },
+//   {
+//     name: 'Cheltuieli',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: 0.2,
+//     aspirationLevel: 400,
+//     acceptedDeviation: 100
+//   },
+//   {
+//     name: 'GradConfort',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: 0.2,
+//     aspirationLevel: 20,
+//     acceptedDeviation: 5
+//   }
+// ])
 
-const variants = ref([
-  { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
-  { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
-  { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
-  { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
-])
+// const variants = ref([
+//   { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
+//   { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
+//   { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
+//   { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
+// ])
 
 //Problema unui loc de work
 
@@ -336,8 +390,8 @@ const variants = ref([
 //   { variant: 'j5', salariu: 2400, distanta: '30,50,60', solicitarea: '9,12,16', satisfactie: 0.9 }
 // ])
 
-// const criteria = ref([])
-// const variants = ref([])
+const criteria = ref([])
+const variants = ref([])
 
 const optimalDecision = ref({})
 const hierarchy = ref([])
@@ -362,16 +416,6 @@ const deleteCriteria = () => {
   criteria.value = []
   showDeleteCriteriaBtn.value = false
 }
-
-const checkCriteria = () => {
-  if (criteria.value !== []) {
-    showDeleteCriteriaBtn.value = true
-  }
-}
-
-onMounted(() => {
-  checkCriteria()
-})
 
 columns.push({ field: 'variant', header: 'Variant' })
 
