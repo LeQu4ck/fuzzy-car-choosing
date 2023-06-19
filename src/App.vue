@@ -92,10 +92,20 @@
 
       <Dialog v-model:visible="dialogVisible" @hide="resetForm">
         <div class="p-fluid">
-          <div><label>Varianta</label> <InputText v-model="formData.variant" /></div>
+          <div>
+            <label>Varianta</label>
+            <InputText v-model="formData.variant" />
+          </div>
           <div v-for="(criterion, index) in criteria" :key="index">
             <label>{{ criterion.name }}</label>
-            <InputText v-model="formData[criterion.name]" />
+            <template v-if="criterion.type === 'Fuzzy'">
+              <!-- Input Mask for Fuzzy Type -->
+              <InputText v-model="formData[criterion.name]" placeholder="ex. 234,324,656" />
+            </template>
+            <template v-else>
+              <!-- Simple Input for Other Criterion Types -->
+              <InputText v-model="formData[criterion.name]" />
+            </template>
           </div>
         </div>
 
@@ -121,7 +131,7 @@
       </div>
 
       <div class="mt-4">
-        <Button @click="calculateOptimalDecision">Calculeaza decizia optimă</Button>
+        <Button @click="calculateOptimalDecision()">Calculeaza decizia optimă</Button>
       </div>
     </TabPanel>
   </TabView>
@@ -130,8 +140,41 @@
 <script setup>
 import { ref } from 'vue'
 
-const criteria = ref([])
-let variants = ref([])
+const criteria = ref([
+  {
+    name: 'pret',
+    type: 'Regular',
+    optimizationType: 'Min',
+    weight: 0.6,
+    aspirationLevel: 9.5,
+    acceptedDeviation: 5
+  },
+  {
+    name: 'Cheltuieli',
+    type: 'Fuzzy',
+    optimizationType: 'Min',
+    weight: 0.2,
+    aspirationLevel: 400,
+    acceptedDeviation: 100
+  },
+  {
+    name: 'GradConfort',
+    type: 'Regular',
+    optimizationType: 'Max',
+    weight: 0.2,
+    aspirationLevel: 20,
+    acceptedDeviation: 5
+  }
+])
+const variants = ref([
+  { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
+  { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
+  { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
+  { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
+])
+
+// const criteria = ref([])
+// const variants = ref([])
 
 const newCriterion = ref({
   name: '',
@@ -171,6 +214,7 @@ const addRow = () => {
   const newRow = { ...formData.value }
   variants.value.push(newRow)
   hideDialog()
+  console.log(variants.value)
 }
 
 const emptyTable = () => {
@@ -195,6 +239,7 @@ const addCriterion = () => {
   newCriterion.value.aspirationLevel = ''
   newCriterion.value.acceptedDeviation = ''
   showDeleteCriteriaBtn.value = true
+  console.log(criteria.value)
 }
 
 const onCellEditComplete = (event) => {
@@ -202,14 +247,124 @@ const onCellEditComplete = (event) => {
   data[field] = newValue
 }
 
-const calculateOptimalDecision = () => {
-  // Implement the calculation logic based on the inserted values and criterion settings
-  // ... your implementation here ...
-  // Set the optimal decision in the reactive variable
-  optimalDecision.value = {
-    variant: 'Variant 1',
-    score: 100
+// const calculateOptimalDecision = () => {
+//   optimalDecision.value = {
+//     variant: 'Variant 1',
+//     score: 100
+//   }
+// }
+
+const fuzzyMatrix = ref([])
+
+const consequencesMatrix = () => {
+  for (const variant of variants.value) {
+    const fuzzyValues = {}
+
+    for (const criterion of criteria.value) {
+      const { name, type, optimizationType, aspirationLevel, acceptedDeviation } = criterion
+      const value = variant[name]
+
+      let fuzzyValue = 0
+
+      if (type === 'Fuzzy') {
+        const convertedArray = value.split(/,\s*/).map(Number)
+        const defuzzifiedValue =
+          0.25 * (convertedArray[0] + 2 * convertedArray[1] + convertedArray[2])
+        if (optimizationType === 'Min') {
+          fuzzyValue = calculateFuzzyMin(defuzzifiedValue, aspirationLevel, acceptedDeviation)
+        } else if (optimizationType === 'Max') {
+          fuzzyValue = calculateFuzzyMax(defuzzifiedValue, aspirationLevel, acceptedDeviation)
+        }
+      } else {
+        // Treat as regular type by default
+        if (optimizationType === 'Min') {
+          fuzzyValue = calculateFuzzyMin(value, aspirationLevel, acceptedDeviation)
+        } else if (optimizationType === 'Max') {
+          fuzzyValue = calculateFuzzyMax(value, aspirationLevel, acceptedDeviation)
+        }
+      }
+
+      fuzzyValues[name] = fuzzyValue
+    }
+
+    fuzzyMatrix.value.push(fuzzyValues)
   }
+
+  return fuzzyMatrix
+}
+
+const calculateFuzzyMin = (value, aspirationLevel, acceptedDeviation) => {
+  if (Number(value) <= Number(aspirationLevel)) {
+    return 1
+  } else if (
+    Number(value) > Number(aspirationLevel) &&
+    Number(value) < Number(aspirationLevel) + Number(acceptedDeviation)
+  ) {
+    return 1 - (Number(value) - Number(aspirationLevel)) / Number(acceptedDeviation)
+  } else if (Number(value) >= Number(aspirationLevel) + Number(acceptedDeviation)) {
+    return 0
+  }
+}
+
+const calculateFuzzyMax = (value, aspirationLevel, acceptedDeviation) => {
+  if (Number(value) >= Number(aspirationLevel)) {
+    return 1
+  } else if (
+    Number(value) < Number(aspirationLevel) &&
+    Number(value) > Number(aspirationLevel) - Number(acceptedDeviation)
+  ) {
+    return 1 - (Number(aspirationLevel) - Number(value)) / Number(acceptedDeviation)
+  } else if (Number(value) <= Number(aspirationLevel) - Number(acceptedDeviation)) {
+    return 0
+  }
+}
+
+const calculateOptimalDecision = () => {
+  consequencesMatrix()
+
+  const hasWeight = criteria.value.some((criterion) => criterion.weight !== '')
+  let optimalDecision = []
+
+  if (hasWeight) {
+    optimalDecision = weightedOptimalDecision(fuzzyMatrix.value)
+  } else {
+    optimalDecision = weightlessOptimalDecision(fuzzyMatrix.value)
+  }
+
+  return optimalDecision
+}
+
+const weightedOptimalDecision = (fuzzyMat) => {
+  fuzzyMat.map((row) => {
+    const weightedRow = {}
+
+    for (const criterion of criteria.value) {
+      const { name, weight } = criterion
+      const value = row[name]
+
+      weightedRow[name] = value * weight
+    }
+
+    const rowSum = Object.values(weightedRow).reduce((acc, val) => acc + val, 0)
+    weightedRow.sum = rowSum
+    console.log(weightedRow)
+    return weightedRow
+  })
+}
+
+const weightlessOptimalDecision = (fuzzyMat) => {
+  fuzzyMat.map((row) => {
+    const weightlessRow = {}
+
+    for (const criterion of criteria.value) {
+      const { name } = criterion
+      const value = row[name]
+
+      weightlessRow[name] = value
+    }
+
+    return weightlessRow
+  })
 }
 </script>
 

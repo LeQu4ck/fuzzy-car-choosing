@@ -23,6 +23,7 @@ import Column from 'primevue/column';
 import Row from 'primevue/row';
 import Dialog from 'primevue/dialog';
 import Card from 'primevue/card';
+import InputMask from 'primevue/inputmask';
 
 //directives
 import FocusTrap from 'primevue/focustrap';
@@ -43,6 +44,7 @@ app.component('Column', Column)
 app.component('Row', Row)
 app.component('Dialog', Dialog)
 app.component('Card', Card)
+app.component('InputMask', InputMask)
 
 //directives
 app.directive('focustrap', FocusTrap);
