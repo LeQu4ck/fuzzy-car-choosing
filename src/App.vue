@@ -1,9 +1,20 @@
 <template>
-  <MenuBar class="navBarStyle" style="border: 0px">
-    <template #start>
+  <div
+    class="navBarStyle flex justify-content-between align-items-center flex-wrap"
+    style="border: 0px; min-height: 200px"
+  >
+    <div class="flex align-items-center justify-content-center">
       <img alt="logo" src="@/assets/fuzzy-car-choice-logo.png" height="200" class="m-0 p-0" />
-    </template>
-  </MenuBar>
+    </div>
+    <div class="flex align-items-center justify-content-between">
+      <img
+        alt="mijto"
+        src="https://media.tenor.com/FQ38aKxDsr4AAAAC/skull-glowing-eye.gif"
+        height="150"
+        class="m-0 p-0"
+      />
+    </div>
+  </div>
 
   <TabView class="mt-4 flex flex-column align-items-center">
     <TabPanel>
@@ -38,10 +49,6 @@
           </div>
           <div class="flex flex-column">
             <div class="flex flex-column mr-2">
-              <label>Pondere: </label>
-              <InputText v-model="newCriterion.weight"></InputText>
-            </div>
-            <div class="flex flex-column mr-2">
               <label>Nivel aspirație: </label>
               <InputText s v-model="newCriterion.aspirationLevel"></InputText>
             </div>
@@ -49,6 +56,10 @@
               <label>Abatere acceptată: </label>
               <InputText v-model="newCriterion.acceptedDeviation"></InputText>
             </div>
+          </div>
+          <div class="flex flex-column mr-2">
+            <label>Pondere: </label>
+            <InputText v-model="newCriterion.weight"></InputText>
           </div>
           <Button
             class="mt-2 border-circle"
@@ -116,19 +127,39 @@
       </Dialog>
 
       <!-- Add Row Button -->
-      <div class="flex justify-content-between">
-        <Button @click="openDialog">Adauga rând</Button>
+      <div class="flex justify-content-between mt-2">
+        <Button @click="openDialog">Adaugă variantă</Button>
         <Button @click="emptyTable">Golește tabel</Button>
       </div>
 
-      <!-- Calculate Optimal Decision Button -->
+      <DataTable class="mt-4" v-if="fuzzyMatrix" :value="fuzzyMatrix">
+        <Column field="variant" header="Variant"></Column>
+        <Column
+          v-for="criterion in criteria"
+          :key="criterion.name"
+          :field="criterion.name"
+          :header="criterion.name"
+        ></Column>
+      </DataTable>
 
-      <!-- Display Optimal Decision -->
-      <div v-if="optimalDecision">
-        <h3>Decizia optima:</h3>
-        <p>Varianta: {{ optimalDecision.variant }}</p>
-        <p>Scorul: {{ optimalDecision.score }}</p>
-      </div>
+      <Card class="mt-4" style="width: 100%">
+        <template #title> <h3>Decizia optima:</h3> </template>
+        <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
+        <template #content>
+          <div class="flex flex-column" v-if="optimalDecision && hierarchy">
+            <div class="flex flex-column">
+              <p>Varianta: {{ optimalDecision.variant }}</p>
+              <p>Scorul: {{ optimalDecision }}</p>
+            </div>
+            <div class="flex flex-row">
+              <p>Ierarhie: &nbsp;</p>
+              <p v-for="(item, index) in hierarchy" :key="index">
+                {{ item }} {{ index < hierarchy.length - 1 ? '>&nbsp;' : '' }}
+              </p>
+            </div>
+          </div>
+        </template>
+      </Card>
 
       <div class="mt-4">
         <Button @click="calculateOptimalDecision()">Calculeaza decizia optimă</Button>
@@ -175,6 +206,9 @@ const variants = ref([
 
 // const criteria = ref([])
 // const variants = ref([])
+
+const optimalDecision = ref(null)
+const hierarchy = ref([])
 
 const newCriterion = ref({
   name: '',
@@ -225,8 +259,6 @@ const hideDialog = () => {
   dialogVisible.value = false
 }
 
-const optimalDecision = ref(null)
-
 const criterionTypes = ref(['Regular', 'Fuzzy'])
 const optimizationTypes = ref(['Min', 'Max'])
 
@@ -247,16 +279,11 @@ const onCellEditComplete = (event) => {
   data[field] = newValue
 }
 
-// const calculateOptimalDecision = () => {
-//   optimalDecision.value = {
-//     variant: 'Variant 1',
-//     score: 100
-//   }
-// }
-
 const fuzzyMatrix = ref([])
 
 const consequencesMatrix = () => {
+  fuzzyMatrix.value = []
+
   for (const variant of variants.value) {
     const fuzzyValues = {}
 
@@ -300,7 +327,7 @@ const calculateFuzzyMin = (value, aspirationLevel, acceptedDeviation) => {
     Number(value) > Number(aspirationLevel) &&
     Number(value) < Number(aspirationLevel) + Number(acceptedDeviation)
   ) {
-    return 1 - (Number(value) - Number(aspirationLevel)) / Number(acceptedDeviation)
+    return (1 - (Number(value) - Number(aspirationLevel)) / Number(acceptedDeviation)).toFixed(2)
   } else if (Number(value) >= Number(aspirationLevel) + Number(acceptedDeviation)) {
     return 0
   }
@@ -313,58 +340,82 @@ const calculateFuzzyMax = (value, aspirationLevel, acceptedDeviation) => {
     Number(value) < Number(aspirationLevel) &&
     Number(value) > Number(aspirationLevel) - Number(acceptedDeviation)
   ) {
-    return 1 - (Number(aspirationLevel) - Number(value)) / Number(acceptedDeviation)
+    return (1 - (Number(aspirationLevel) - Number(value)) / Number(acceptedDeviation)).toFixed(2)
   } else if (Number(value) <= Number(aspirationLevel) - Number(acceptedDeviation)) {
     return 0
   }
 }
 
-const calculateOptimalDecision = () => {
+const membershipFunction = () => {
   consequencesMatrix()
 
   const hasWeight = criteria.value.some((criterion) => criterion.weight !== '')
-  let optimalDecision = []
+  let membership = []
 
   if (hasWeight) {
-    optimalDecision = weightedOptimalDecision(fuzzyMatrix.value)
+    membership = weightedOptimalDecision(fuzzyMatrix.value)
   } else {
-    optimalDecision = weightlessOptimalDecision(fuzzyMatrix.value)
+    membership = weightlessOptimalDecision(fuzzyMatrix.value)
   }
+
+  return membership
+}
+
+const calculateOptimalDecision = () => {
+  optimalDecision.value = null
+  hierarchy.value = []
+  let membership = []
+
+  membership = membershipFunction()
+
+  optimalDecision.value = Math.max(...membership)
+  hierarchy.value = membership.sort(function (a, b) {
+    return b - a
+  })
+  console.log(hierarchy.value)
+  console.log(optimalDecision.value)
 
   return optimalDecision
 }
 
 const weightedOptimalDecision = (fuzzyMat) => {
-  fuzzyMat.map((row) => {
+  let weightedRows = []
+  weightedRows = fuzzyMat.map((row) => {
     const weightedRow = {}
 
     for (const criterion of criteria.value) {
       const { name, weight } = criterion
       const value = row[name]
 
-      weightedRow[name] = value * weight
+      weightedRow[name] = Number(value * weight)
     }
 
-    const rowSum = Object.values(weightedRow).reduce((acc, val) => acc + val, 0)
-    weightedRow.sum = rowSum
-    console.log(weightedRow)
+    const rowSum = Object.values(weightedRow).reduce((acc, val) => Number(acc) + Number(val), 0)
+    weightedRow.sum = Number(rowSum.toFixed(2))
+
     return weightedRow
   })
+
+  let weightedArray = []
+  weightedArray = weightedRows.map((row) => row.sum)
+
+  return weightedArray
 }
 
 const weightlessOptimalDecision = (fuzzyMat) => {
+  const weightlessRow = {}
   fuzzyMat.map((row) => {
-    const weightlessRow = {}
-
     for (const criterion of criteria.value) {
       const { name } = criterion
       const value = row[name]
 
-      weightlessRow[name] = value
+      weightlessRow[name] = Number(value)
     }
 
-    return weightlessRow
+    const minRowValue = Math.min(...Object.values(weightlessRow))
+    weightlessRow.minValue = minRowValue.toFixed(2)
   })
+  return weightlessRow
 }
 </script>
 
