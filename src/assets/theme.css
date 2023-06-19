@@ -869,7 +869,7 @@
     background: #808080;
     border: 1px solid #a5acb3;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
-    border-radius: 1px;
+    border-radius: 10px;
 }
 
 .p-dropdown:not(.p-disabled):hover {
@@ -1275,7 +1275,7 @@
     border: 1px solid #a5acb3;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     appearance: none;
-    border-radius: 1px;
+    border-radius: 10px;
 }
 
 .p-inputtext:enabled:hover {
@@ -3164,7 +3164,7 @@
 
 .p-datatable .p-paginator-top {
     border-width: 0 0 1px 0;
-    border-radius: 0;
+    border-radius: 10px;
 }
 
 .p-datatable .p-paginator-bottom {
@@ -3191,7 +3191,7 @@
 }
 
 .p-datatable .p-datatable-thead>tr>th {
-    text-align: left;
+    text-align: center;
     padding: 0.25rem 1rem;
     border: 1px solid #ffbb4a;
     border-width: 0 0 1px 0;
@@ -3202,7 +3202,7 @@
 }
 
 .p-datatable .p-datatable-tfoot>tr>td {
-    text-align: left;
+    text-align: center;
     padding: 0.25rem 1rem;
     border: 1px solid #ffbb4a;
     border-width: 0 0 1px 0;

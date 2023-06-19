@@ -91,11 +91,16 @@
         @cell-edit-complete="onCellEditComplete"
         :editable="true"
       >
-        <Column field="variant" header="Variant" :editable="true">
+        <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
           <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
         ></Column>
         <template v-for="criterion in criteria" :key="criterion.name">
-          <Column :field="criterion.name" :header="criterion.name" :editable="true">
+          <Column
+            :field="criterion.name"
+            :header="criterion.name"
+            :editable="true"
+            bodyStyle="text-align:center"
+          >
             <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
           ></Column>
         </template>
@@ -132,37 +137,80 @@
         <Button @click="emptyTable">Golește tabel</Button>
       </div>
 
-      <DataTable class="mt-4" v-if="fuzzyMatrix" :value="fuzzyMatrix">
-        <Column field="variant" header="Variant"></Column>
-        <Column
-          v-for="criterion in criteria"
-          :key="criterion.name"
-          :field="criterion.name"
-          :header="criterion.name"
-        ></Column>
-      </DataTable>
+      <div class="mt-4">
+        <Button @click="calculateOptimalDecision()">Calculeaza decizia optimă</Button>
+      </div>
+
+      <!-- Determining fuzzy triangular real numbers -->
 
       <Card class="mt-4" style="width: 100%">
-        <template #title> <h3>Decizia optima:</h3> </template>
+        <template #title>
+          <h3>Numerele reale asociate numerelor fuzzy triunghiulare:</h3>
+        </template>
         <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
         <template #content>
-          <div class="flex flex-column" v-if="optimalDecision && hierarchy">
+          <div class="flex flex-column justify-content-center" v-if="associatedRealNumber">
             <div class="flex flex-column">
-              <p>Varianta: {{ optimalDecision.variant }}</p>
-              <p>Scorul: {{ optimalDecision }}</p>
-            </div>
-            <div class="flex flex-row">
-              <p>Ierarhie: &nbsp;</p>
-              <p v-for="(item, index) in hierarchy" :key="index">
-                {{ item }} {{ index < hierarchy.length - 1 ? '>&nbsp;' : '' }}
+              <p
+                v-for="(item, index) in associatedRealNumber"
+                :key="index"
+                class="flex justify-content-center"
+              >
+                {{ index + 1 }}. {{ item }}
               </p>
             </div>
           </div>
         </template>
       </Card>
 
-      <div class="mt-4">
-        <Button @click="calculateOptimalDecision()">Calculeaza decizia optimă</Button>
+      <!-- Determining fuzzy sets -->
+      <DataTable class="mt-4" v-if="fuzzyMatrix" :value="fuzzyMatrix">
+        <template #header>
+          <h4>Mulțimile fuzzy</h4>
+        </template>
+        <Column class="flex align-items-center" field="variant" header="Variant"></Column>
+        <Column
+          v-for="criterion in criteria"
+          :key="criterion.name"
+          :field="criterion.name"
+          :header="criterion.name"
+          bodyStyle="text-align:center"
+        ></Column>
+      </DataTable>
+
+      <!-- Finall output - decision - hierarchy -->
+
+      <div class="flex flex-row justify-content-between">
+        <Card class="mt-4" style="width: 45%">
+          <template #title> <h3>Decizia optimă:</h3> </template>
+          <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
+          <template #content>
+            <div class="flex flex-column" v-if="optimalDecision">
+              <div class="flex flex-column">
+                <p>Varianta: {{ optimalDecision.variant }}</p>
+                <p>Scorul: {{ optimalDecision.score }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+        <Card class="mt-4" style="width: 45%">
+          <template #title> <h3>Ierarhia</h3> </template>
+          <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
+          <template #content>
+            <div class="flex flex-column" v-if="hierarchy">
+              <div class="flex flex-row">
+                <div v-for="(item, index) in hierarchy" :key="index" class="flex flex-column">
+                  <div class="flex flex-column">
+                    <p style="text-align: center">
+                      {{ item.variant }} {{ index < hierarchy.length - 1 ? '>&nbsp;' : '' }}
+                    </p>
+                    <p style="text-align: center">{{ item.score }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </TabPanel>
   </TabView>
@@ -170,6 +218,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { onMounted } from 'vue'
+
+//Alegerea unui automobil
 
 const criteria = ref([
   {
@@ -197,6 +248,7 @@ const criteria = ref([
     acceptedDeviation: 5
   }
 ])
+
 const variants = ref([
   { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
   { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
@@ -204,11 +256,92 @@ const variants = ref([
   { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
 ])
 
+//Problema unui loc de work
+
+// const criteria = ref([
+//   {
+//     name: 'salariu',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: '',
+//     aspirationLevel: 2500,
+//     acceptedDeviation: 1000
+//   },
+//   {
+//     name: 'distanta',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: '',
+//     aspirationLevel: 30,
+//     acceptedDeviation: 50
+//   },
+//   {
+//     name: 'solicitarea',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: '',
+//     aspirationLevel: 10,
+//     acceptedDeviation: 5
+//   },
+//   {
+//     name: 'satisfactie',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: '',
+//     aspirationLevel: '',
+//     acceptedDeviation: ''
+//   }
+// ])
+
+// const criteria = ref([
+//   {
+//     name: 'salariu',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: 0.5,
+//     aspirationLevel: 2500,
+//     acceptedDeviation: 1000
+//   },
+//   {
+//     name: 'distanta',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: 0.1,
+//     aspirationLevel: 30,
+//     acceptedDeviation: 50
+//   },
+//   {
+//     name: 'solicitarea',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: 0.2,
+//     aspirationLevel: 10,
+//     acceptedDeviation: 5
+//   },
+//   {
+//     name: 'satisfactie',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: 0.2,
+//     aspirationLevel: '',
+//     acceptedDeviation: ''
+//   }
+// ])
+
+// const variants = ref([
+//   { variant: 'j1', salariu: 3500, distanta: '50,70,80', solicitarea: '12,14,15', satisfactie: 1 },
+//   { variant: 'j2', salariu: 4000, distanta: '15,30,40', solicitarea: '12,16,18', satisfactie: 0.7 },
+//   { variant: 'j3', salariu: 1800, distanta: '10,15,25', solicitarea: '6,10,12', satisfactie: 0.8 },
+//   { variant: 'j4', salariu: 2000, distanta: '30,40,45', solicitarea: '5,6,9', satisfactie: 0.4 },
+//   { variant: 'j5', salariu: 2400, distanta: '30,50,60', solicitarea: '9,12,16', satisfactie: 0.9 }
+// ])
+
 // const criteria = ref([])
 // const variants = ref([])
 
-const optimalDecision = ref(null)
+const optimalDecision = ref({})
 const hierarchy = ref([])
+const associatedRealNumber = ref([])
 
 const newCriterion = ref({
   name: '',
@@ -230,6 +363,16 @@ const deleteCriteria = () => {
   showDeleteCriteriaBtn.value = false
 }
 
+const checkCriteria = () => {
+  if (criteria.value !== []) {
+    showDeleteCriteriaBtn.value = true
+  }
+}
+
+onMounted(() => {
+  checkCriteria()
+})
+
 columns.push({ field: 'variant', header: 'Variant' })
 
 const dialogVisible = ref(false)
@@ -248,7 +391,7 @@ const addRow = () => {
   const newRow = { ...formData.value }
   variants.value.push(newRow)
   hideDialog()
-  console.log(variants.value)
+  //console.log(variants.value)
 }
 
 const emptyTable = () => {
@@ -271,7 +414,7 @@ const addCriterion = () => {
   newCriterion.value.aspirationLevel = ''
   newCriterion.value.acceptedDeviation = ''
   showDeleteCriteriaBtn.value = true
-  console.log(criteria.value)
+  //console.log(criteria.value)
 }
 
 const onCellEditComplete = (event) => {
@@ -283,9 +426,11 @@ const fuzzyMatrix = ref([])
 
 const consequencesMatrix = () => {
   fuzzyMatrix.value = []
+  associatedRealNumber.value = []
 
   for (const variant of variants.value) {
     const fuzzyValues = {}
+    fuzzyValues.variant = variant.variant // Add the variant name property
 
     for (const criterion of criteria.value) {
       const { name, type, optimizationType, aspirationLevel, acceptedDeviation } = criterion
@@ -293,21 +438,26 @@ const consequencesMatrix = () => {
 
       let fuzzyValue = 0
 
-      if (type === 'Fuzzy') {
-        const convertedArray = value.split(/,\s*/).map(Number)
-        const defuzzifiedValue =
-          0.25 * (convertedArray[0] + 2 * convertedArray[1] + convertedArray[2])
-        if (optimizationType === 'Min') {
-          fuzzyValue = calculateFuzzyMin(defuzzifiedValue, aspirationLevel, acceptedDeviation)
-        } else if (optimizationType === 'Max') {
-          fuzzyValue = calculateFuzzyMax(defuzzifiedValue, aspirationLevel, acceptedDeviation)
-        }
+      if (aspirationLevel === '' && acceptedDeviation === '') {
+        fuzzyValue = value
       } else {
-        // Treat as regular type by default
-        if (optimizationType === 'Min') {
-          fuzzyValue = calculateFuzzyMin(value, aspirationLevel, acceptedDeviation)
-        } else if (optimizationType === 'Max') {
-          fuzzyValue = calculateFuzzyMax(value, aspirationLevel, acceptedDeviation)
+        if (type === 'Fuzzy') {
+          const convertedArray = value.split(/,\s*/).map(Number)
+          const defuzzifiedValue =
+            0.25 * (convertedArray[0] + 2 * convertedArray[1] + convertedArray[2])
+          associatedRealNumber.value.push(defuzzifiedValue)
+          if (optimizationType === 'Min') {
+            fuzzyValue = calculateFuzzyMin(defuzzifiedValue, aspirationLevel, acceptedDeviation)
+          } else if (optimizationType === 'Max') {
+            fuzzyValue = calculateFuzzyMax(defuzzifiedValue, aspirationLevel, acceptedDeviation)
+          }
+        } else {
+          // Treat as regular type by default
+          if (optimizationType === 'Min') {
+            fuzzyValue = calculateFuzzyMin(value, aspirationLevel, acceptedDeviation)
+          } else if (optimizationType === 'Max') {
+            fuzzyValue = calculateFuzzyMax(value, aspirationLevel, acceptedDeviation)
+          }
         }
       }
 
@@ -317,6 +467,7 @@ const consequencesMatrix = () => {
     fuzzyMatrix.value.push(fuzzyValues)
   }
 
+  //console.log(fuzzyMatrix)
   return fuzzyMatrix
 }
 
@@ -362,16 +513,21 @@ const membershipFunction = () => {
 }
 
 const calculateOptimalDecision = () => {
-  optimalDecision.value = null
-  hierarchy.value = []
+  optimalDecision.value = { variant: null, score: null }
+  hierarchy.value = [{ variant: null, score: null }]
   let membership = []
+  let variantName = ''
 
   membership = membershipFunction()
 
-  optimalDecision.value = Math.max(...membership)
-  hierarchy.value = membership.sort(function (a, b) {
-    return b - a
-  })
+  const maxIndex = membership.findIndex((value) => value === Math.max(...membership))
+  variantName = Object.values(variants.value[maxIndex])[0]
+  optimalDecision.value = { variant: variantName, score: Math.max(...membership) }
+
+  hierarchy.value = membership
+    .map((score, index) => ({ variant: Object.values(variants.value[index])[0], score }))
+    .sort((a, b) => b.score - a.score)
+
   console.log(hierarchy.value)
   console.log(optimalDecision.value)
 
@@ -391,6 +547,7 @@ const weightedOptimalDecision = (fuzzyMat) => {
     }
 
     const rowSum = Object.values(weightedRow).reduce((acc, val) => Number(acc) + Number(val), 0)
+    weightedRow.variant = row.variant
     weightedRow.sum = Number(rowSum.toFixed(2))
 
     return weightedRow
@@ -399,12 +556,15 @@ const weightedOptimalDecision = (fuzzyMat) => {
   let weightedArray = []
   weightedArray = weightedRows.map((row) => row.sum)
 
+  console.log(weightedArray)
   return weightedArray
 }
 
 const weightlessOptimalDecision = (fuzzyMat) => {
-  const weightlessRow = {}
-  fuzzyMat.map((row) => {
+  let weightlessRows = []
+
+  weightlessRows = fuzzyMat.map((row) => {
+    const weightlessRow = {}
     for (const criterion of criteria.value) {
       const { name } = criterion
       const value = row[name]
@@ -413,9 +573,16 @@ const weightlessOptimalDecision = (fuzzyMat) => {
     }
 
     const minRowValue = Math.min(...Object.values(weightlessRow))
-    weightlessRow.minValue = minRowValue.toFixed(2)
+    weightlessRow.variant = row.variant
+    weightlessRow.min = Number(minRowValue.toFixed(2))
+    return weightlessRow
   })
-  return weightlessRow
+
+  let weightlessArray = []
+  weightlessArray = weightlessRows.map((row) => row.min)
+
+  console.log(weightlessArray)
+  return weightlessArray
 }
 </script>
 
@@ -445,6 +612,9 @@ const weightlessOptimalDecision = (fuzzyMat) => {
 }
 :deep(.p-dropdown-item .p-highlight) {
   background-color: black;
+}
+:deep(.p-column-header-content) {
+  justify-content: center;
 }
 </style>
 
