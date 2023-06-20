@@ -22,7 +22,94 @@
         <i class="pi pi-book mr-2"></i>
         <span>Documentație</span>
       </template>
-      <p>sdfnjsd</p>
+      <div class="container mt-4 mb-4">
+        <h1>Documentația Aplicației Fuzzy de alegere a unui automobil (FDM)</h1>
+        <hr />
+        <h2>1. Introducere</h2>
+        <p>
+          Aplicația Fuzzy de alegere a unui automobil (FDM) este o aplicație informatică dezvoltată
+          pentru a facilita procesul decizional în alegerea unui automobil, pe baza mai multor
+          criterii și alternative. Această aplicație folosește teoria fuzzy pentru a trata
+          incertitudinea și ambiguitatea care pot apărea în procesul decizional.
+        </p>
+        <h2>2. Specificații de Intrare</h2>
+        <p>FDM acceptă următoarele tipuri de intrări:</p>
+        <ul>
+          <li>
+            <strong>Criterii</strong>: Aplicația acceptă criterii diferite pentru evaluarea
+            automobilului. Două dintre aceste criterii pot fi exprimate ca numere fuzzy
+            triunghiulare.
+          </li>
+          <li>
+            <strong>Alternative (Automobile)</strong>: Aplicația permite analiza și comparația a
+            mai multor alternative diferite.
+          </li>
+          <li>
+            <strong>Matricea Consecințelor</strong>: Aceasta este o matrice care reprezintă
+            rezultatele posibile sau consecințele care ar putea rezulta din alegerea unei anumite
+            alternative.
+          </li>
+          <li>
+            <strong>Nivelele de Aspirație</strong>: Acestea sunt nivelurile pe care
+            utilizatorul dorește să le atingă pentru fiecare criteriu.
+          </li>
+          <li>
+            <strong>Abaterile Admise</strong>: Acestea sunt marjele de abatere permise de utilizator
+            pentru fiecare criteriu.
+          </li>
+          <li>
+            <strong>Ponderile Asociate Criteriilor</strong>: Acestea sunt ponderile pe care
+            utilizatorul le acordă fiecărui criteriu. Aceste ponderi vor influența modul în care
+            diferitele criterii contribuie la decizia finală.
+          </li>
+        </ul>
+        <h2>3. Algoritmul de Decizie Multi-Atribut (FDM)</h2>
+        <p>
+          Algoritmul FDM folosește toate intrările specificate mai sus pentru a calcula decizia cea
+          mai bună. Acest algoritmul ia în considerare nu numai valoarea fiecărui criteriu, ci și
+          importanța relativă a fiecărui criteriu (adică ponderea acestuia), precum și abaterile
+          admise și nivelurile de aspirație.
+        </p>
+        <h2>4. Interfață Utilizator</h2>
+        <p>
+          Interfața utilizatorului este intuitivă și ușor de utilizat, permițând utilizatorilor să
+          introducă criteriile, ponderile, alternativele, nivelele de aspirație, abaterile admise și
+          matricea consecințelor într-un format ușor de înțeles.
+        </p>
+        <h2>5. Tutorial de folosire a aplicației</h2>
+        <ul>
+          <li>Se introduce un criteriu.</li>
+          <li>Se alege un tip de criteriu.</li>
+          <li>Se alege optimizarea (min sau max).</li>
+          <li>Se introduc următoarele: nivelul de aspirație, abaterea acceptată și ponderea.</li>
+          <li>Se adaugă criteriile.</li>
+          <li>
+            După ce criteriile au fost adăugate, se adaugă variante, facând clic pe butonul
+            <strong>"Adaugă variantă"</strong>.
+          </li>
+          <li>
+            În urma apăsării butnoului <strong>"Adaugă variantă"</strong> va apărea o fereastră în
+            care va fi scris numele variantei alături de valorile pentru fiecare criteriu.
+          </li>
+          <li>
+            După ce ați adăugat toate variantele, apăsați pe butonul
+            <strong>"calculează decizia optimă"</strong> pentru a afișa rezultatele.
+          </li>
+        </ul>
+        <h2>6. Rezultatele Aplicației</h2>
+        <p>
+          Rezultatele aplicației FDM vor fi prezentate utilizatorilor într-un format clar și ușor de
+          interpretat, arătând cum fiecare alternativă se compară cu celelalte în funcție de
+          criteriile selectate.
+        </p>
+        <h2>7. Concluzii</h2>
+        <p>
+          Aplicația FDM reprezintă o unealtă puternică și flexibilă pentru deciziile multi-atribut,
+          permițând utilizatorilor să își evalueze opțiunile într-un mod detaliat și riguros. În
+          plus, utilizarea teoriei fuzzy permite tratamentul incertitudinii și ambiguității, făcând
+          aplicația FDM adecvată pentru o gamă largă de scenarii decizionale.
+        </p>
+      </div>
     </TabPanel>
 
     <TabPanel>
@@ -219,7 +306,7 @@
       </div>
 
       <!-- Determining fuzzy sets -->
-      <DataTable  class="mt-4" v-if="fuzzyMatrix.length > 0" :value="fuzzyMatrix">
+      <DataTable class="mt-4" v-if="fuzzyMatrix.length > 0" :value="fuzzyMatrix">
         <template #header>
           <h4>Mulțimile fuzzy</h4>
         </template>
@@ -235,15 +322,18 @@
 
       <!-- Finall output - decision - hierarchy -->
 
-      <div v-if="optimalDecision !== {} && hierarchy.length > 0" class="flex flex-row justify-content-between">
+      <div
+        v-if="optimalDecision.length > 0 && hierarchy.length > 0"
+        class="flex flex-row justify-content-between"
+      >
         <Card class="mt-4" style="width: 45%">
           <template #title> <h3>Decizia optimă:</h3> </template>
           <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
           <template #content>
             <div class="flex flex-column" v-if="optimalDecision">
-              <div class="flex flex-column">
-                <p>Varianta: {{ optimalDecision.variant }}</p>
-                <p>Scorul: {{ optimalDecision.score }}</p>
+              <div v-for="(dec) in optimalDecision" :key="dec" class="flex flex-column">
+                <p>Varianta: {{ dec.variant }}</p>
+                <p>Scorul: {{ dec.score }}</p>
               </div>
             </div>
           </template>
@@ -393,7 +483,7 @@ import { ref } from 'vue'
 const criteria = ref([])
 const variants = ref([])
 
-const optimalDecision = ref({})
+const optimalDecision = ref([{}])
 const hierarchy = ref([])
 const associatedRealNumber = ref([])
 
@@ -557,7 +647,7 @@ const membershipFunction = () => {
 }
 
 const calculateOptimalDecision = () => {
-  optimalDecision.value = { variant: null, score: null }
+  optimalDecision.value = [{ variant: null, score: null }]
   hierarchy.value = [{ variant: null, score: null }]
   let membership = []
   let variantName = ''
@@ -566,7 +656,7 @@ const calculateOptimalDecision = () => {
 
   const maxIndex = membership.findIndex((value) => value === Math.max(...membership))
   variantName = Object.values(variants.value[maxIndex])[0]
-  optimalDecision.value = { variant: variantName, score: Math.max(...membership) }
+  optimalDecision.value.push ( { variant: variantName, score: Math.max(...membership) } )
 
   hierarchy.value = membership
     .map((score, index) => ({ variant: Object.values(variants.value[index])[0], score }))
@@ -660,6 +750,43 @@ const weightlessOptimalDecision = (fuzzyMat) => {
 :deep(.p-column-header-content) {
   justify-content: center;
 }
+.container {
+  width: 80%;
+  margin: auto;
+  background-color: #000000;
+  padding: 20px;
+  border-radius: 15px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #dfd2d2;
+}
+
+h2 {
+  color: #e0e0e0;
+  margin-top: 20px;
+}
+
+p {
+  color: #b3b3b3;
+  line-height: 1.6;
+  text-indent: 3rem;
+}
+
+ul {
+  margin-left: 1.6rem;
+  color: #b3b3b3;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: #dfd2d2;
+  margin-bottom: 25px;
+}
+
 </style>
 
 <style>
