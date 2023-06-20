@@ -24,10 +24,15 @@ import Row from 'primevue/row';
 import Dialog from 'primevue/dialog';
 import Card from 'primevue/card';
 import InputMask from 'primevue/inputmask';
+import ToggleButton from 'primevue/togglebutton';
+import Toast from 'primevue/toast';
 
 //directives
 import FocusTrap from 'primevue/focustrap';
 import Tooltip from 'primevue/tooltip';
+
+//services
+import ToastService from 'primevue/toastservice';
 
 const app = createApp(App)
 
@@ -45,10 +50,15 @@ app.component('Row', Row)
 app.component('Dialog', Dialog)
 app.component('Card', Card)
 app.component('InputMask', InputMask)
+app.component('ToggleButton', ToggleButton)
+app.component('Toast', Toast)
 
 //directives
 app.directive('focustrap', FocusTrap);
 app.directive('tooltip', Tooltip)
+
+//services
+app.use(ToastService)
 
 app.use(PrimeVue, {ripple: true});
 

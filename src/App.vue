@@ -1,4 +1,5 @@
 <template>
+  <Toast position="top-right"></Toast>
   <div
     class="navBarStyle flex justify-content-between align-items-center flex-wrap"
     style="border: 0px; min-height: 200px"
@@ -41,8 +42,8 @@
             triunghiulare.
           </li>
           <li>
-            <strong>Alternative (Automobile)</strong>: Aplicația permite analiza și comparația a
-            mai multor alternative diferite.
+            <strong>Alternative (Automobile)</strong>: Aplicația permite analiza și comparația a mai
+            multor alternative diferite.
           </li>
           <li>
             <strong>Matricea Consecințelor</strong>: Aceasta este o matrice care reprezintă
@@ -50,8 +51,8 @@
             alternative.
           </li>
           <li>
-            <strong>Nivelele de Aspirație</strong>: Acestea sunt nivelurile pe care
-            utilizatorul dorește să le atingă pentru fiecare criteriu.
+            <strong>Nivelele de Aspirație</strong>: Acestea sunt nivelurile pe care utilizatorul
+            dorește să le atingă pentru fiecare criteriu.
           </li>
           <li>
             <strong>Abaterile Admise</strong>: Acestea sunt marjele de abatere permise de utilizator
@@ -118,36 +119,48 @@
         <span>Model</span>
       </template>
 
-      <div class="flex flex-row justify-content-center">
+      <div style="color: white" class="flex flex-row justify-content-center mt-4">
         <div>
           <div class="flex flex-row">
             <div class="flex flex-column mr-2">
               <label>Nume criteriu:</label>
               <InputText v-model="newCriterion.name" />
             </div>
+
             <div class="flex flex-column mr-2">
               <label>Tip criteriu:</label>
               <DropDown v-model="newCriterion.type" :options="criterionTypes" />
             </div>
+
             <div class="flex flex-column mr-2">
               <label>Optimizare:</label>
               <DropDown v-model="newCriterion.optimizationType" :options="optimizationTypes" />
             </div>
           </div>
+
           <div class="flex flex-column">
             <div class="flex flex-column mr-2">
               <label>Nivel aspirație: </label>
               <InputText s v-model="newCriterion.aspirationLevel"></InputText>
             </div>
+
             <div class="flex flex-column mr-2">
               <label>Abatere acceptată: </label>
               <InputText v-model="newCriterion.acceptedDeviation"></InputText>
             </div>
           </div>
-          <div class="flex flex-column mr-2">
-            <label>Pondere: </label>
+
+          <div class="flex flex-row flex-wrap mr-2 mt-2 mb-2">
+            <p style="color: white; text-align: center" class="flex justify-content-start mr-2">
+              Pondere?
+            </p>
+            <ToggleButton type="button" class="border-round-xl" v-model="tglBtn" />
+          </div>
+
+          <div v-if="tglBtn" class="flex flex-column mr-2">
             <InputText v-model="newCriterion.weight"></InputText>
           </div>
+
           <Button
             type="button"
             class="mt-4 border-round-md"
@@ -161,7 +174,12 @@
       <div v-if="criteria.length > 0" class="mb-4">
         <h3>Listă criterii:</h3>
         <ul>
-          <li v-for="(criterion, index) in criteria" :key="index" class="flex flex-row p-1 m-1">
+          <li
+            style="color: white"
+            v-for="(criterion, index) in criteria"
+            :key="index"
+            class="flex flex-row p-1 m-1"
+          >
             {{ index + 1 }}. {{ '&nbsp;' }}
 
             <div class="flex flex-column mr-2">
@@ -331,7 +349,7 @@
           <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
           <template #content>
             <div class="flex flex-column" v-if="optimalDecision">
-              <div v-for="(dec) in optimalDecision" :key="dec" class="flex flex-column">
+              <div v-for="dec in optimalDecision" :key="dec" class="flex flex-column">
                 <p>Varianta: {{ dec.variant }}</p>
                 <p>Scorul: {{ dec.score }}</p>
               </div>
@@ -340,7 +358,7 @@
         </Card>
         <Card class="mt-4" style="width: 45%">
           <template #title> <h3>Ierarhia</h3> </template>
-          <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
+          <template #subtitle> <hr style="width: 100%" /> </template>
           <template #content>
             <div class="flex flex-column" v-if="hierarchy">
               <div class="flex flex-row">
@@ -362,7 +380,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
 
 //Alegerea unui automobil
 
@@ -371,7 +390,7 @@ import { ref } from 'vue'
 //     name: 'pret',
 //     type: 'Regular',
 //     optimizationType: 'Min',
-//     weight: 0.6,
+//     weight: 0.3,
 //     aspirationLevel: 9.5,
 //     acceptedDeviation: 5
 //   },
@@ -387,7 +406,7 @@ import { ref } from 'vue'
 //     name: 'GradConfort',
 //     type: 'Regular',
 //     optimizationType: 'Max',
-//     weight: 0.2,
+//     weight: 0.1,
 //     aspirationLevel: 20,
 //     acceptedDeviation: 5
 //   }
@@ -483,6 +502,8 @@ import { ref } from 'vue'
 const criteria = ref([])
 const variants = ref([])
 
+const tglBtn = ref(false)
+
 const optimalDecision = ref([{}])
 const hierarchy = ref([])
 const associatedRealNumber = ref([])
@@ -540,15 +561,19 @@ const criterionTypes = ref(['Regular', 'Fuzzy'])
 const optimizationTypes = ref(['Min', 'Max'])
 
 const addCriterion = () => {
-  criteria.value.push({ ...newCriterion.value })
-  newCriterion.value.name = ''
-  newCriterion.value.type = ''
-  newCriterion.value.optimizationType = ''
-  newCriterion.value.weight = ''
-  newCriterion.value.aspirationLevel = ''
-  newCriterion.value.acceptedDeviation = ''
-  showDeleteCriteriaBtn.value = true
-  //console.log(criteria.value)
+  if (weightedSumCheck.value) {
+    criteria.value.push({ ...newCriterion.value })
+    newCriterion.value.name = ''
+    newCriterion.value.type = ''
+    newCriterion.value.optimizationType = ''
+    newCriterion.value.weight = ''
+    newCriterion.value.aspirationLevel = ''
+    newCriterion.value.acceptedDeviation = ''
+    showDeleteCriteriaBtn.value = true
+    console.log(criteria.value)
+  }
+
+  
 }
 
 const onCellEditComplete = (event) => {
@@ -647,16 +672,24 @@ const membershipFunction = () => {
 }
 
 const calculateOptimalDecision = () => {
-  optimalDecision.value = [{ variant: null, score: null }]
+  optimalDecision.value = []
   hierarchy.value = [{ variant: null, score: null }]
+
   let membership = []
-  let variantName = ''
+  let maxScore = -Infinity
 
   membership = membershipFunction()
 
-  const maxIndex = membership.findIndex((value) => value === Math.max(...membership))
-  variantName = Object.values(variants.value[maxIndex])[0]
-  optimalDecision.value.push ( { variant: variantName, score: Math.max(...membership) } )
+  membership.forEach((score, index) => {
+    const variantName = Object.values(variants.value[index])[0]
+
+    if (score === maxScore) {
+      optimalDecision.value.push({ variant: variantName, score })
+    } else if (score > maxScore) {
+      maxScore = score
+      optimalDecision.value = [{ variant: variantName, score }]
+    }
+  })
 
   hierarchy.value = membership
     .map((score, index) => ({ variant: Object.values(variants.value[index])[0], score }))
@@ -718,6 +751,33 @@ const weightlessOptimalDecision = (fuzzyMat) => {
   console.log(weightlessArray)
   return weightlessArray
 }
+
+const toast = useToast()
+
+const weightedSumCheck = computed(() => {
+  let totalWeight = 0
+  let isValid = true
+
+  totalWeight = criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) + Number(newCriterion.value.weight)
+
+  console.log(totalWeight)
+  if (totalWeight  <= 1) {
+    return isValid
+  } else {
+    showToast('error', 'Eroare', 'Suma ponderilor nu poate depasi 1!')
+    return !isValid
+  }
+
+})
+
+const showToast = (severity, msg, detail) => {
+  toast.add({
+    severity: severity,
+    summary: msg,
+    detail: detail,
+    life: 5000 //
+  })
+}
 </script>
 
 <style scoped>
@@ -771,7 +831,6 @@ h2 {
 
 p {
   color: #b3b3b3;
-  line-height: 1.6;
   text-indent: 3rem;
 }
 
@@ -781,12 +840,11 @@ ul {
 }
 
 hr {
-  border: 0;
+  border: 10;
   height: 1px;
-  background: #dfd2d2;
+  border-color: white;
   margin-bottom: 25px;
 }
-
 </style>
 
 <style>
@@ -803,5 +861,8 @@ body {
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
+}
+label {
+  color: white;
 }
 </style>

@@ -1950,7 +1950,7 @@
 }
 
 .p-togglebutton.p-button {
-    background: #fff;
+    background: #000000;
     border: 1px solid #a5acb3;
     color: #fff0e6;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
@@ -1969,7 +1969,7 @@
 }
 
 .p-togglebutton.p-button:not(.p-disabled):not(.p-highlight):hover {
-    background: #ffbb4a;
+    background: red;
     border-color: #a5acb3;
     color: #fff0e6;
 }
@@ -1980,7 +1980,7 @@
 }
 
 .p-togglebutton.p-button.p-highlight {
-    background: #ffffff;
+    background: hsl(0, 0%, 0%);
     border-color: #ffffff;
     color: #fff;
 }
