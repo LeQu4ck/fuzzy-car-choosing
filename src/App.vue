@@ -141,12 +141,18 @@
           <div class="flex flex-column">
             <div class="flex flex-column mr-2">
               <label>Nivel aspirație: </label>
-              <InputText s v-model="newCriterion.aspirationLevel"></InputText>
+              <InputNumber
+                v-model.number="newCriterion.aspirationLevel"
+                :maxFractionDigits="2"
+              ></InputNumber>
             </div>
 
             <div class="flex flex-column mr-2">
               <label>Abatere acceptată: </label>
-              <InputText v-model="newCriterion.acceptedDeviation"></InputText>
+              <InputNumber
+                v-model.number="newCriterion.acceptedDeviation"
+                :maxFractionDigits="2"
+              ></InputNumber>
             </div>
           </div>
 
@@ -158,7 +164,7 @@
           </div>
 
           <div v-if="tglBtn" class="flex flex-column mr-2">
-            <InputText v-model="newCriterion.weight"></InputText>
+            <InputNumber :maxFractionDigits="2" v-model.number="newCriterion.weight"></InputNumber>
           </div>
 
           <Button
@@ -171,58 +177,112 @@
         </div>
       </div>
 
-      <div v-if="criteria.length > 0" class="mb-4">
-        <h3>Listă criterii:</h3>
-        <ul>
-          <li
-            style="color: white"
-            v-for="(criterion, index) in criteria"
-            :key="index"
-            class="flex flex-row p-1 m-1"
-          >
-            {{ index + 1 }}. {{ '&nbsp;' }}
-
-            <div class="flex flex-column mr-2">
-              <label for="numeCriteriu">Criteriu: </label>
-              <InputText id="numeCriteriu" v-model="criterion.name"></InputText>
-            </div>
-
-            <div class="flex flex-column mr-2">
-              <label for="tipCriteriu">Tip criteriu: </label>
-              <InputText id="tipCriteriu" v-model="criterion.type"></InputText>
-            </div>
-
-            <div class="flex flex-column mr-2">
-              <label for="optimizare">Optimizare: </label>
-              <InputText id="optimizare" v-model="criterion.optimizationType"></InputText>
-            </div>
-
-            <div class="flex flex-column mr-2">
-              <label for="nivelAspiratie">Nivel aspirație: </label>
-              <InputText id="nivelAspiratie" v-model="criterion.aspirationLevel"></InputText>
-            </div>
-
-            <div class="flex flex-column mr-2">
-              <label for="abatere">Abatere admisă: </label>
-              <InputText id="abatere" v-model="criterion.acceptedDeviation"></InputText>
-            </div>
-
-            <div class="flex flex-column mr-2">
-              <label for="pondere">Pondere: </label>
-              <InputText id="pondere" v-model="criterion.weight"></InputText>
-            </div>
-          </li>
-        </ul>
-        <Button
-          type="button"
-          class="border-round-md"
-          v-if="showDeleteCriteriaBtn"
-          @click="deleteCriteria"
-          >Șterge criterii</Button
+      <!-- Added data table for criteria -->
+      <div class="mt-4 mb-4" v-if="criteria.length > 0">
+        <DataTable
+          v-model:editing-rows="editingRows"
+          :value="criteria"
+          editMode="row"
+          dataKey="name"
+          @row-edit-save="onRowEditSave"
+          tableClass="editable-cells-table"
+          tableStyle="min-width: 50rem"
         >
+          <template #header>
+            <h4>Tabel criterii</h4>
+          </template>
+          <Column
+            field="name"
+            header="Name"
+            style="width: 15%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputText v-model="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            field="type"
+            header="Type"
+            style="width: 15%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputText v-model="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            field="optimizationType"
+            header="Optimization Type"
+            style="width: 15%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputText v-model="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            field="weight"
+            header="Weight"
+            style="width: 20%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputNumber v-model.number="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            field="aspirationLevel"
+            header="Aspiration Level"
+            style="width: 15%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputNumber v-model.number="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            field="acceptedDeviation"
+            header="Accepted Deviation"
+            style="width: 15%"
+            :editable="true"
+            body-style="text-align:center"
+          >
+            <template #editor="{ data, field }">
+              <InputNumber v-model.number="data[field]" />
+            </template>
+          </Column>
+
+          <Column
+            :rowEditor="true"
+            style="width: 5%;"
+            bodyStyle="text-align:center"
+            header="Edit row"
+          ></Column>
+
+          <Column
+            style="width: 5%;"
+            bodyStyle="text-align:center"
+            header="Delete row"
+          >
+            <template #body="{ data }">
+              <Button icon="pi pi-trash" class="p-button-danger" @click="deleteRow(data)" />
+            </template>
+          </Column>
+        </DataTable>
       </div>
 
-      <!-- Data Table -->
+      <!-- Variants data table -->
       <div v-if="criteria.length != 0" class="flex justify-content-center">
         <div style="width: 75%">
           <DataTable
@@ -233,6 +293,9 @@
             @cell-edit-complete="onCellEditComplete"
             :editable="true"
           >
+            <template #header>
+              <h4>Tabel variante</h4>
+            </template>
             <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
               <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
             ></Column>
@@ -385,39 +448,39 @@ import { useToast } from 'primevue/usetoast'
 
 //Alegerea unui automobil
 
-// const criteria = ref([
-//   {
-//     name: 'pret',
-//     type: 'Regular',
-//     optimizationType: 'Min',
-//     weight: 0.3,
-//     aspirationLevel: 9.5,
-//     acceptedDeviation: 5
-//   },
-//   {
-//     name: 'Cheltuieli',
-//     type: 'Fuzzy',
-//     optimizationType: 'Min',
-//     weight: 0.2,
-//     aspirationLevel: 400,
-//     acceptedDeviation: 100
-//   },
-//   {
-//     name: 'GradConfort',
-//     type: 'Regular',
-//     optimizationType: 'Max',
-//     weight: 0.1,
-//     aspirationLevel: 20,
-//     acceptedDeviation: 5
-//   }
-// ])
+const criteria = ref([
+  {
+    name: 'pret',
+    type: 'Regular',
+    optimizationType: 'Min',
+    weight: 0.3,
+    aspirationLevel: 9.5,
+    acceptedDeviation: 5
+  },
+  {
+    name: 'Cheltuieli',
+    type: 'Fuzzy',
+    optimizationType: 'Min',
+    weight: 0.2,
+    aspirationLevel: 400,
+    acceptedDeviation: 100
+  },
+  {
+    name: 'GradConfort',
+    type: 'Regular',
+    optimizationType: 'Max',
+    weight: 0.1,
+    aspirationLevel: 20,
+    acceptedDeviation: 5
+  }
+])
 
-// const variants = ref([
-//   { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
-//   { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
-//   { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
-//   { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
-// ])
+const variants = ref([
+  { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
+  { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
+  { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
+  { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
+])
 
 //Problema unui loc de work
 
@@ -499,8 +562,8 @@ import { useToast } from 'primevue/usetoast'
 //   { variant: 'j5', salariu: 2400, distanta: '30,50,60', solicitarea: '9,12,16', satisfactie: 0.9 }
 // ])
 
-const criteria = ref([])
-const variants = ref([])
+// const criteria = ref([])
+// const variants = ref([])
 
 const tglBtn = ref(false)
 
@@ -512,21 +575,20 @@ const newCriterion = ref({
   name: '',
   type: '',
   optimizationType: '',
-  weight: '',
-  aspirationLevel: '',
-  acceptedDeviation: ''
+  weight: null,
+  aspirationLevel: null,
+  acceptedDeviation: null
 })
-
 const columns = criteria.value.map((criterion) => {
   return { field: criterion.name, header: criterion.name, sortable: true }
 })
 
 const showDeleteCriteriaBtn = ref(false)
 
-const deleteCriteria = () => {
-  criteria.value = []
-  showDeleteCriteriaBtn.value = false
-}
+// const deleteCriteria = () => {
+//   criteria.value = []
+//   showDeleteCriteriaBtn.value = false
+// }
 
 columns.push({ field: 'variant', header: 'Variant' })
 
@@ -566,14 +628,12 @@ const addCriterion = () => {
     newCriterion.value.name = ''
     newCriterion.value.type = ''
     newCriterion.value.optimizationType = ''
-    newCriterion.value.weight = ''
-    newCriterion.value.aspirationLevel = ''
-    newCriterion.value.acceptedDeviation = ''
+    newCriterion.value.weight = null
+    newCriterion.value.aspirationLevel = null
+    newCriterion.value.acceptedDeviation = null
     showDeleteCriteriaBtn.value = true
-    console.log(criteria.value)
+    // console.log(criteria.value)
   }
-
-  
 }
 
 const onCellEditComplete = (event) => {
@@ -752,22 +812,39 @@ const weightlessOptimalDecision = (fuzzyMat) => {
   return weightlessArray
 }
 
+const onRowEditSave = (event) => {
+  let { newData, index } = event
+
+  criteria.value[index] = newData
+}
+
+const editingRows = ref([])
+
+const deleteRow = (row) => {
+  const index = criteria.value.findIndex((item) => item.name === row.name)
+  if (index !== -1) {
+    criteria.value.splice(index, 1)
+  }
+  console.log(criteria.value)
+}
+
 const toast = useToast()
 
 const weightedSumCheck = computed(() => {
   let totalWeight = 0
   let isValid = true
 
-  totalWeight = criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) + Number(newCriterion.value.weight)
+  totalWeight =
+    criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) +
+    Number(newCriterion.value.weight)
 
   console.log(totalWeight)
-  if (totalWeight  <= 1) {
+  if (totalWeight <= 1) {
     return isValid
   } else {
     showToast('error', 'Eroare', 'Suma ponderilor nu poate depasi 1!')
     return !isValid
   }
-
 })
 
 const showToast = (severity, msg, detail) => {

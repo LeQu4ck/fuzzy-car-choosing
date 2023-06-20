@@ -3275,11 +3275,11 @@
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-init,
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-save,
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-cancel {
-    width: 1rem;
-    height: 1rem;
-    color: #878d96;
+    width: 2rem;
+    height: 2rem;
+    color: white;
     border: 0 none;
-    background: transparent;
+    background: blue;
     border-radius: 50%;
     transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
