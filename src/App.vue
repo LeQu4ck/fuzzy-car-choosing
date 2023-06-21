@@ -121,6 +121,7 @@
 
       <div style="color: white" class="flex flex-row justify-content-center mt-4">
         <div>
+          <h2>Adăugare criterii</h2>
           <div class="flex flex-row">
             <div class="flex flex-column mr-2">
               <label>Nume criteriu:</label>
@@ -299,7 +300,12 @@
 
           <Column style="width: 5%" bodyStyle="text-align:center" header="Șterge rând">
             <template #body="{ data }">
-              <Button icon="pi pi-trash" rounded class="p-button-danger" @click="deleteRowCriteria(data)" />
+              <Button
+                icon="pi pi-trash"
+                rounded
+                class="p-button-danger"
+                @click="deleteRowCriteria(data)"
+              />
             </template>
           </Column>
         </DataTable>
@@ -485,7 +491,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 
 //Alegerea unui automobil
@@ -597,7 +603,6 @@ const variants = ref([
     Consum_100km: '4.3, 5.1, 6.2'
   }
 ])
-
 
 //Problema unui loc de work
 
@@ -750,6 +755,7 @@ const optimizationTypesObjects = ref([
 const addCriterion = () => {
   if (weightedSumCheck()) {
     criteria.value.push({ ...newCriterion.value })
+    showToast('success', 'Succes', 'Criteriul a fost adăugat!')
     newCriterion.value.name = ''
     newCriterion.value.type = ''
     newCriterion.value.optimizationType = ''
@@ -844,19 +850,17 @@ const calculateFuzzyMax = (value, aspirationLevel, acceptedDeviation) => {
 const membershipFunction = () => {
   consequencesMatrix()
 
-
-  const hasWeight = criteria.value.some((criterion) =>  criterion.weight != null)
+  const hasWeight = criteria.value.some((criterion) => criterion.weight != null)
 
   console.log(hasWeight)
   let membership = []
-  
+
   if (hasWeight) {
     membership = weightedOptimalDecision(fuzzyMatrix.value)
   } else {
     membership = weightlessOptimalDecision(fuzzyMatrix.value)
   }
 
-  
   return membership
 }
 
@@ -889,7 +893,7 @@ const calculateOptimalDecision = () => {
 
   if (optimalDecision.value.length > 0 && hierarchy.value.length > 0) {
     showToast('info', 'Info', 'Decizia optimă a fost calculată!')
-  }else{
+  } else {
     showToast('error', 'Eroare', 'Ceva nu a funcționat!')
   }
 
@@ -911,7 +915,7 @@ const weightedOptimalDecision = (fuzzyMat) => {
     const rowSum = Object.values(weightedRow).reduce((acc, val) => Number(acc) + Number(val), 0)
     weightedRow.variant = row.variant
     weightedRow.sum = Number(rowSum.toFixed(2))
-    
+
     //console.log(weightedRow.value)
     return weightedRow
   })
