@@ -169,6 +169,7 @@
 
           <Button
             type="button"
+            style="background-color: black; color: white"
             class="mt-4 border-round-md"
             v-tooltip="'Adaugă criteriu'"
             @click="addCriterion"
@@ -189,7 +190,7 @@
           tableStyle="min-width: 50rem"
         >
           <template #header>
-            <h4>Tabel criterii</h4>
+            <h2>Tabel criterii</h2>
           </template>
           <Column
             field="name"
@@ -208,10 +209,23 @@
             header="Type"
             style="width: 15%"
             :editable="true"
-            body-style="text-align:center"
+            bodyStyle="text-align:center"
           >
             <template #editor="{ data, field }">
-              <InputText v-model="data[field]" />
+              <DropDown
+                v-model="data[field]"
+                :options="criterionTypesObjects"
+                optionLabel="label"
+                optionValue="value"
+              >
+                <template #option="slotProps">
+                  <Tag :value="slotProps.option.value" />
+                </template>
+
+                <template #body="slotProps">
+                  <Tag :value="slotProps.data.optimizationType" />
+                </template>
+              </DropDown>
             </template>
           </Column>
 
@@ -220,10 +234,23 @@
             header="Optimization Type"
             style="width: 15%"
             :editable="true"
-            body-style="text-align:center"
+            bodyStyle="text-align:center"
           >
             <template #editor="{ data, field }">
-              <InputText v-model="data[field]" />
+              <DropDown
+                v-model="data[field]"
+                :options="optimizationTypesObjects"
+                optionLabel="label"
+                optionValue="value"
+              >
+                <template #option="slotProps">
+                  <Tag :value="slotProps.option.value" />
+                </template>
+
+                <template #body="slotProps">
+                  <Tag :value="slotProps.data.optimizationType" />
+                </template>
+              </DropDown>
             </template>
           </Column>
 
@@ -272,7 +299,7 @@
 
           <Column style="width: 5%" bodyStyle="text-align:center" header="Șterge rând">
             <template #body="{ data }">
-              <Button icon="pi pi-trash" rounded class="p-button-danger" @click="deleteRow(data)" />
+              <Button icon="pi pi-trash" rounded class="p-button-danger" @click="deleteRowCriteria(data)" />
             </template>
           </Column>
         </DataTable>
@@ -291,14 +318,21 @@
           >
             <template #header>
               <div class="flex justify-content-between align-items-center">
-                <h4>Tabel variante</h4>
-                <Button
-                  style="max-height: 30px"
-                  type="button"
-                  class="border-round-md p-button-danger"
-                  @click="emptyTable"
-                  >Golește tabel</Button
-                >
+                <h2>Tabel variante</h2>
+                <div class="flex justify-content-between mt-2">
+                  <div>
+                    <Button type="button" class="border-round-md mr-2" @click="openDialog"
+                      >Adaugă variantă</Button
+                    >
+                  </div>
+                  <Button
+                    style="max-height: 30px"
+                    type="button"
+                    class="border-round-md p-button-danger"
+                    @click="emptyTable"
+                    >Golește tabel</Button
+                  >
+                </div>
               </div>
             </template>
             <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
@@ -325,23 +359,17 @@
               </template>
             </Column>
           </DataTable>
-
-          <div class="flex justify-content-between mt-2">
-            <Button type="button" class="border-round-md" @click="openDialog"
-              >Adaugă variantă</Button
-            >
-          </div>
         </div>
       </div>
 
       <Dialog v-model:visible="dialogVisible" @hide="resetForm">
-        <div class="p-fluid">
-          <div>
-            <label>Varianta</label>
+        <div class="p-fluid p-4">
+          <div class="mt-2">
+            <label style="color: black">Varianta</label>
             <InputText v-model="formData.variant" />
           </div>
-          <div v-for="(criterion, index) in criteria" :key="index">
-            <label>{{ criterion.name }}</label>
+          <div class="mt-2" v-for="(criterion, index) in criteria" :key="index">
+            <label style="color: black">{{ criterion.name }}</label>
             <template v-if="criterion.type === 'Fuzzy'">
               <!-- Input Mask for Fuzzy Type -->
               <InputText v-model="formData[criterion.name]" placeholder="ex. 234,324,656" />
@@ -360,6 +388,7 @@
             id="denyDialog"
             label="Închide"
             @click="hideDialog"
+            style="background-color: #c21f2a; color: white"
           />
           <Button
             type="button"
@@ -367,6 +396,7 @@
             id="accDialog"
             label="Adaugă"
             @click="addRow"
+            style="color: white; border: 1px solid white"
           />
         </div>
       </Dialog>
@@ -379,21 +409,15 @@
 
       <!-- Determining fuzzy triangular real numbers -->
       <div v-if="associatedRealNumber.length > 0" class="flex justify-content-center">
-        <Card class="mt-4" style="width: 60%">
+        <Card class="mt-4" style="width: 100%">
           <template #title>
-            <h3>Numerele reale asociate numerelor fuzzy triunghiulare:</h3>
+            <h4>Numerele reale asociate numerelor fuzzy triunghiulare:</h4>
           </template>
           <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
           <template #content>
-            <div class="flex flex-column justify-content-center" v-if="associatedRealNumber">
-              <div class="flex flex-column">
-                <p
-                  v-for="(item, index) in associatedRealNumber"
-                  :key="index"
-                  class="flex justify-content-center"
-                >
-                  {{ index + 1 }}. {{ item }}
-                </p>
+            <div class="flex flex-row justify-content-center" v-if="associatedRealNumber">
+              <div v-for="(item, index) in associatedRealNumber" :key="index" class="flex flex-row">
+                <p class="flex justify-content-center">{{ index + 1 }}. {{ item }}</p>
               </div>
             </div>
           </template>
@@ -403,9 +427,9 @@
       <!-- Determining fuzzy sets -->
       <DataTable class="mt-4" v-if="fuzzyMatrix.length > 0" :value="fuzzyMatrix">
         <template #header>
-          <h4>Mulțimile fuzzy</h4>
+          <h2>Mulțimile fuzzy</h2>
         </template>
-        <Column class="flex align-items-center" field="variant" header="Variant"></Column>
+        <Column field="variant" header="Variant" bodyStyle="text-align: center"></Column>
         <Column
           v-for="criterion in criteria"
           :key="criterion.name"
@@ -419,16 +443,20 @@
 
       <div
         v-if="optimalDecision.length > 0 && hierarchy.length > 0"
-        class="flex flex-row justify-content-between"
+        class="flex flex-row justify-content-between mb-6"
       >
         <Card class="mt-4" style="width: 45%">
           <template #title> <h3>Decizia optimă:</h3> </template>
           <template #subtitle> <hr style="width: 100%; border-color: white" /> </template>
           <template #content>
             <div class="flex flex-column" v-if="optimalDecision">
-              <div v-for="dec in optimalDecision" :key="dec" class="flex flex-column">
-                <p>Varianta: {{ dec.variant }}</p>
-                <p>Scorul: {{ dec.score }}</p>
+              <div
+                v-for="dec in optimalDecision"
+                :key="dec"
+                class="flex flex-column justify-content-center"
+              >
+                <div>Varianta: {{ dec.variant }}</div>
+                <div>Scorul: {{ dec.score }}</div>
               </div>
             </div>
           </template>
@@ -438,13 +466,13 @@
           <template #subtitle> <hr style="width: 100%" /> </template>
           <template #content>
             <div class="flex flex-column" v-if="hierarchy">
-              <div class="flex flex-row">
+              <div class="flex flex-wrap justify-content-center">
                 <div v-for="(item, index) in hierarchy" :key="index" class="flex flex-column">
-                  <div class="flex flex-column">
-                    <p style="text-align: center">
+                  <div class="flex flex-column justify-content-center">
+                    <div class="flex justify-content-center mr-2">
                       {{ item.variant }} {{ index < hierarchy.length - 1 ? '>&nbsp;' : '' }}
-                    </p>
-                    <p style="text-align: center">{{ item.score }}</p>
+                    </div>
+                    <div class="flex justify-content-center">{{ item.score }}</div>
                   </div>
                 </div>
               </div>
@@ -464,7 +492,7 @@ import { useToast } from 'primevue/usetoast'
 
 const criteria = ref([
   {
-    name: 'pret',
+    name: 'Pret',
     type: 'Regular',
     optimizationType: 'Min',
     weight: 0.3,
@@ -483,17 +511,56 @@ const criteria = ref([
     name: 'GradConfort',
     type: 'Regular',
     optimizationType: 'Max',
-    weight: 0.1,
+    weight: 0.2,
     aspirationLevel: 20,
     acceptedDeviation: 5
+  },
+  {
+    name: 'Consum_100km',
+    type: 'Fuzzy',
+    optimizationType: 'Min',
+    weight: 0.3,
+    aspirationLevel: 5.5,
+    acceptedDeviation: 1.5
   }
 ])
 
 const variants = ref([
-  { variant: 'Masina 1', pret: 13.5, Cheltuieli: '400, 430, 500', GradConfort: 20 },
-  { variant: 'Masina 2', pret: 12, Cheltuieli: '440, 500, 530', GradConfort: 19 },
-  { variant: 'Masina 3', pret: 11, Cheltuieli: '380, 400, 480', GradConfort: 17 },
-  { variant: 'Masina 4', pret: 10.5, Cheltuieli: '410, 450, 520', GradConfort: 16 }
+  {
+    variant: 'Masina 1',
+    Pret: 13.5,
+    Cheltuieli: '400, 430, 500',
+    GradConfort: 20,
+    Consum_100km: '4, 4.5, 7'
+  },
+  {
+    variant: 'Masina 2',
+    Pret: 12,
+    Cheltuieli: '440, 500, 530',
+    GradConfort: 19,
+    Consum_100km: '4.8, 5.6, 9'
+  },
+  {
+    variant: 'Masina 3',
+    Pret: 11,
+    Cheltuieli: '380, 400, 480',
+    GradConfort: 17,
+    Consum_100km: '5, 5.5, 6.8'
+  },
+  {
+    variant: 'Masina 4',
+    Pret: 10.5,
+    Cheltuieli: '410, 450, 520',
+    GradConfort: 16,
+    Consum_100km: '4.2, 4.8, 6'
+  },
+  {
+    variant: 'Masina 5',
+    Pret: 9.8,
+    Cheltuieli: '420, 445, 480',
+    GradConfort: 18,
+    Consum_100km: '4.3, 5.1, 6.2'
+  }
 ])
 
 //Problema unui loc de work
@@ -634,7 +701,15 @@ const hideDialog = () => {
 }
 
 const criterionTypes = ref(['Regular', 'Fuzzy'])
+const criterionTypesObjects = ref([
+  { label: 'Regular', value: 'Regular' },
+  { label: 'Fuzzy', value: 'Fuzzy' }
+])
 const optimizationTypes = ref(['Min', 'Max'])
+const optimizationTypesObjects = ref([
+  { label: 'Min', value: 'Min' },
+  { label: 'Max', value: 'Max' }
+])
 
 const addCriterion = () => {
   if (weightedSumCheck.value) {
@@ -772,6 +847,13 @@ const calculateOptimalDecision = () => {
   console.log(hierarchy.value)
   console.log(optimalDecision.value)
 
+  if (optimalDecision.value.length > 0 && hierarchy.value.length > 0) {
+    showToast('info', 'Info', 'Decizia optimă a fost calculată!')
+  }else{
+    showToast('error', 'Eroare', 'Ceva nu a funcționat!')
+  }
+
+
   return optimalDecision
 }
 
@@ -838,20 +920,22 @@ const onRowEditSave = (event) => {
 
 const editingRows = ref([])
 
-function deleteRow(row) {
-const index = criteria.value.findIndex((item) => item.name === row.name);
-if (index !== -1) {
-criteria.value.splice(index, 1);
-}
-//console.log(criteria.value)
+function deleteRowCriteria(row) {
+  const index = criteria.value.findIndex((item) => item.name === row.name)
+  if (index !== -1) {
+    criteria.value.splice(index, 1)
+    showToast('info', 'Info', 'Rândul a fost șters!')
+  }
+  //console.log(criteria.value)
 }
 
 const deleteRowVariant = (row) => {
   const index = variants.value.findIndex((item) => item.variant === row.variant)
   if (index !== -1) {
-  variants.value.splice(index, 1);
-  console.log(variants.value)
-}
+    variants.value.splice(index, 1)
+    //console.log(variants.value)
+    showToast('info', 'Info', 'Rândul a fost șters!')
+  }
 }
 const toast = useToast()
 
@@ -928,6 +1012,9 @@ const showToast = (severity, msg, detail) => {
 }
 :deep(.p-column-header-content) {
   justify-content: center;
+}
+:deep(.p-cell-editing){
+  
 }
 .container {
   width: 80%;

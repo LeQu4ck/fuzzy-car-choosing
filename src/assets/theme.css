@@ -37,7 +37,7 @@
     --border-radius: 1px;
     --surface-ground: #f2f4f8;
     --surface-section: #ffffff;
-    --surface-card: #ffffff;
+    --surface-card: black;
     --surface-overlay: #ffffff;
     --surface-border: #dee2e6;
     --surface-hover: #dde1e6;
@@ -3275,8 +3275,10 @@
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-init,
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-save,
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-cancel {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-bottom: 2px;
+    margin-top: 2px;
     color: black;
     border: 0 none;
     background: #00cc00;
@@ -7258,7 +7260,7 @@
 }
 
 .p-tag {
-    background: #ffffff;
+    background: black;
     color: #fff;
     font-size: 0.75rem;
     font-weight: 700;

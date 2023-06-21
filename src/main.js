@@ -27,6 +27,7 @@ import Card from 'primevue/card';
 import InputMask from 'primevue/inputmask';
 import ToggleButton from 'primevue/togglebutton';
 import Toast from 'primevue/toast';
+import Tag from 'primevue/tag';
 
 //directives
 import FocusTrap from 'primevue/focustrap';
@@ -53,6 +54,7 @@ app.component('Card', Card)
 app.component('InputMask', InputMask)
 app.component('ToggleButton', ToggleButton)
 app.component('Toast', Toast)
+app.component('Tag', Tag)
 
 //directives
 app.directive('focustrap', FocusTrap);
