@@ -265,18 +265,14 @@
 
           <Column
             :rowEditor="true"
-            style="width: 5%;"
+            style="width: 5%"
             bodyStyle="text-align:center"
-            header="Edit row"
+            header="Editează rând"
           ></Column>
 
-          <Column
-            style="width: 5%;"
-            bodyStyle="text-align:center"
-            header="Delete row"
-          >
+          <Column style="width: 5%" bodyStyle="text-align:center" header="Șterge rând">
             <template #body="{ data }">
-              <Button icon="pi pi-trash" class="p-button-danger" @click="deleteRow(data)" />
+              <Button icon="pi pi-trash" rounded class="p-button-danger" @click="deleteRow(data)" />
             </template>
           </Column>
         </DataTable>
@@ -284,7 +280,7 @@
 
       <!-- Variants data table -->
       <div v-if="criteria.length != 0" class="flex justify-content-center">
-        <div style="width: 75%">
+        <div style="width: 100%">
           <DataTable
             :value="variants"
             :columns="columns"
@@ -294,7 +290,16 @@
             :editable="true"
           >
             <template #header>
-              <h4>Tabel variante</h4>
+              <div class="flex justify-content-between align-items-center">
+                <h4>Tabel variante</h4>
+                <Button
+                  style="max-height: 30px"
+                  type="button"
+                  class="border-round-md p-button-danger"
+                  @click="emptyTable"
+                  >Golește tabel</Button
+                >
+              </div>
             </template>
             <Column field="variant" header="Variant" :editable="true" bodyStyle="text-align:center">
               <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
@@ -309,13 +314,22 @@
                 <template #editor="{ data, field }"> <InputText v-model="data[field]" /> </template
               ></Column>
             </template>
+            <Column style="width: 5%" bodyStyle="text-align:center" header="Șterge rând">
+              <template #body="{ data }">
+                <Button
+                  icon="pi pi-trash"
+                  rounded
+                  class="p-button-danger"
+                  @click="deleteRowVariant(data)"
+                />
+              </template>
+            </Column>
           </DataTable>
 
           <div class="flex justify-content-between mt-2">
             <Button type="button" class="border-round-md" @click="openDialog"
               >Adaugă variantă</Button
             >
-            <Button type="button" class="border-round-md" @click="emptyTable">Golește tabel</Button>
           </div>
         </div>
       </div>
@@ -815,19 +829,30 @@ const weightlessOptimalDecision = (fuzzyMat) => {
 const onRowEditSave = (event) => {
   let { newData, index } = event
 
-  criteria.value[index] = newData
+  console.log(newData)
+  if (weightedSumCheckDataTable(newData.weight, index)) {
+    criteria.value[index] = newData
+    showToast('success', 'Succes', 'Modificările au fost salvate!')
+  }
 }
 
 const editingRows = ref([])
 
-const deleteRow = (row) => {
-  const index = criteria.value.findIndex((item) => item.name === row.name)
-  if (index !== -1) {
-    criteria.value.splice(index, 1)
-  }
-  console.log(criteria.value)
+function deleteRow(row) {
+const index = criteria.value.findIndex((item) => item.name === row.name);
+if (index !== -1) {
+criteria.value.splice(index, 1);
+}
+//console.log(criteria.value)
 }
 
+const deleteRowVariant = (row) => {
+  const index = variants.value.findIndex((item) => item.variant === row.variant)
+  if (index !== -1) {
+  variants.value.splice(index, 1);
+  console.log(variants.value)
+}
+}
 const toast = useToast()
 
 const weightedSumCheck = computed(() => {
@@ -847,12 +872,29 @@ const weightedSumCheck = computed(() => {
   }
 })
 
+const weightedSumCheckDataTable = (weight, index) => {
+  let totalWeight = 0
+  let isValid = true
+
+  totalWeight =
+    criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) + Number(weight)
+  totalWeight = totalWeight - criteria.value[index].weight
+
+  console.log(totalWeight)
+  if (totalWeight <= 1) {
+    return isValid
+  } else {
+    showToast('error', 'Eroare', 'Suma ponderilor nu poate depasi 1!')
+    return !isValid
+  }
+}
+
 const showToast = (severity, msg, detail) => {
   toast.add({
     severity: severity,
     summary: msg,
     detail: detail,
-    life: 5000 //
+    life: 5000
   })
 }
 </script>
@@ -862,7 +904,7 @@ const showToast = (severity, msg, detail) => {
   background-color: transparent;
 }
 :deep(.p-button) {
-  background-color: black;
+  /* background-color: black; */
   border: 0;
   margin: 2px;
 }
