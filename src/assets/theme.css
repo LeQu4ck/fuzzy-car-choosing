@@ -3292,7 +3292,7 @@
 .p-datatable .p-datatable-tbody>tr>td .p-row-editor-cancel:enabled:hover {
     color: #fff0e6;
     border-color: #121619;
-    background: transparent;
+    background: blue;
 }
 
 .p-datatable .p-datatable-tbody>tr>td .p-row-toggler:focus,

@@ -525,6 +525,41 @@ const criteria = ref([
   }
 ])
 
+// const criteria = ref([
+//   {
+//     name: 'Pret',
+//     type: 'Regular',
+//     optimizationType: 'Min',
+//     weight: null,
+//     aspirationLevel: 9.5,
+//     acceptedDeviation: 5
+//   },
+//   {
+//     name: 'Cheltuieli',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: null,
+//     aspirationLevel: 400,
+//     acceptedDeviation: 100
+//   },
+//   {
+//     name: 'GradConfort',
+//     type: 'Regular',
+//     optimizationType: 'Max',
+//     weight: null,
+//     aspirationLevel: 20,
+//     acceptedDeviation: 5
+//   },
+//   {
+//     name: 'Consum_100km',
+//     type: 'Fuzzy',
+//     optimizationType: 'Min',
+//     weight: null,
+//     aspirationLevel: 5.5,
+//     acceptedDeviation: 1.5
+//   }
+// ])
+
 const variants = ref([
   {
     variant: 'Masina 1',
@@ -562,6 +597,7 @@ const variants = ref([
     Consum_100km: '4.3, 5.1, 6.2'
   }
 ])
+
 
 //Problema unui loc de work
 
@@ -712,7 +748,7 @@ const optimizationTypesObjects = ref([
 ])
 
 const addCriterion = () => {
-  if (weightedSumCheck.value) {
+  if (weightedSumCheck()) {
     criteria.value.push({ ...newCriterion.value })
     newCriterion.value.name = ''
     newCriterion.value.type = ''
@@ -721,7 +757,7 @@ const addCriterion = () => {
     newCriterion.value.aspirationLevel = null
     newCriterion.value.acceptedDeviation = null
     showDeleteCriteriaBtn.value = true
-    // console.log(criteria.value)
+    console.log(criteria.value)
   }
 }
 
@@ -769,13 +805,13 @@ const consequencesMatrix = () => {
         }
       }
 
-      fuzzyValues[name] = fuzzyValue
+      fuzzyValues[name] = Number(fuzzyValue)
     }
 
     fuzzyMatrix.value.push(fuzzyValues)
   }
 
-  //console.log(fuzzyMatrix)
+  console.log(fuzzyMatrix)
   return fuzzyMatrix
 }
 
@@ -808,15 +844,19 @@ const calculateFuzzyMax = (value, aspirationLevel, acceptedDeviation) => {
 const membershipFunction = () => {
   consequencesMatrix()
 
-  const hasWeight = criteria.value.some((criterion) => criterion.weight !== '')
-  let membership = []
 
+  const hasWeight = criteria.value.some((criterion) =>  criterion.weight != null)
+
+  console.log(hasWeight)
+  let membership = []
+  
   if (hasWeight) {
     membership = weightedOptimalDecision(fuzzyMatrix.value)
   } else {
     membership = weightlessOptimalDecision(fuzzyMatrix.value)
   }
 
+  
   return membership
 }
 
@@ -844,15 +884,14 @@ const calculateOptimalDecision = () => {
     .map((score, index) => ({ variant: Object.values(variants.value[index])[0], score }))
     .sort((a, b) => b.score - a.score)
 
-  console.log(hierarchy.value)
-  console.log(optimalDecision.value)
+  //console.log(hierarchy.value)
+  //console.log(optimalDecision.value)
 
   if (optimalDecision.value.length > 0 && hierarchy.value.length > 0) {
     showToast('info', 'Info', 'Decizia optimă a fost calculată!')
   }else{
     showToast('error', 'Eroare', 'Ceva nu a funcționat!')
   }
-
 
   return optimalDecision
 }
@@ -872,14 +911,15 @@ const weightedOptimalDecision = (fuzzyMat) => {
     const rowSum = Object.values(weightedRow).reduce((acc, val) => Number(acc) + Number(val), 0)
     weightedRow.variant = row.variant
     weightedRow.sum = Number(rowSum.toFixed(2))
-
+    
+    //console.log(weightedRow.value)
     return weightedRow
   })
 
   let weightedArray = []
   weightedArray = weightedRows.map((row) => row.sum)
 
-  console.log(weightedArray)
+  //console.log(weightedArray)
   return weightedArray
 }
 
@@ -911,7 +951,7 @@ const weightlessOptimalDecision = (fuzzyMat) => {
 const onRowEditSave = (event) => {
   let { newData, index } = event
 
-  console.log(newData)
+  //console.log(newData)
   if (weightedSumCheckDataTable(newData.weight, index)) {
     criteria.value[index] = newData
     showToast('success', 'Succes', 'Modificările au fost salvate!')
@@ -939,7 +979,7 @@ const deleteRowVariant = (row) => {
 }
 const toast = useToast()
 
-const weightedSumCheck = computed(() => {
+const weightedSumCheck = () => {
   let totalWeight = 0
   let isValid = true
 
@@ -947,14 +987,14 @@ const weightedSumCheck = computed(() => {
     criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) +
     Number(newCriterion.value.weight)
 
-  console.log(totalWeight)
+  //console.log(totalWeight)
   if (totalWeight <= 1) {
     return isValid
   } else {
     showToast('error', 'Eroare', 'Suma ponderilor nu poate depasi 1!')
     return !isValid
   }
-})
+}
 
 const weightedSumCheckDataTable = (weight, index) => {
   let totalWeight = 0
@@ -964,7 +1004,7 @@ const weightedSumCheckDataTable = (weight, index) => {
     criteria.value.reduce((sum, criterion) => sum + Number(criterion.weight), 0) + Number(weight)
   totalWeight = totalWeight - criteria.value[index].weight
 
-  console.log(totalWeight)
+  //console.log(totalWeight)
   if (totalWeight <= 1) {
     return isValid
   } else {
@@ -1013,9 +1053,7 @@ const showToast = (severity, msg, detail) => {
 :deep(.p-column-header-content) {
   justify-content: center;
 }
-:deep(.p-cell-editing){
-  
-}
+
 .container {
   width: 80%;
   margin: auto;
